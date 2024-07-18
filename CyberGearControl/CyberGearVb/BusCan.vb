@@ -10,8 +10,6 @@ Friend Class BusCan
 
     Private MasterCANID As UInteger 'CANID
     Private channel As PcanChannel 'Canal de Comunicación CAN
-    Private receivedMessages As New Queue(Of PcanMessage)()
-    Private messageLock As New Object()
     Public Event MessageReceived As Action(Of PcanMessage)
 
 
@@ -99,6 +97,7 @@ Friend Class BusCan
         End If
 
         Debug.WriteLine("Broadcast message sent, waiting for responses...")
+        Console.WriteLine("Espere mientras se buscan los dipositivos disponibles en la red....")
 
         ' Esperar respuestas
         Dim endTime As DateTime = DateTime.Now.AddSeconds(5) ' Esperar por 5 segundos para respuestas
