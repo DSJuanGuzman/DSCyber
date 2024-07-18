@@ -22,4 +22,15 @@
             Me.Torque = torque
         End Sub
     End Structure
+    Public Structure ParsedSingleParameter
+        Public ReadOnly Property MotorCanId As Byte
+        Public ReadOnly Property Index As Double
+        Public ReadOnly Property Value As Double
+
+        Public Sub New(motorCanId As Byte, index As Double, value As Double)
+            Me.MotorCanId = motorCanId
+            Me.Index = index
+            Me.Value = value
+        End Sub
+    End Structure
 End Namespace

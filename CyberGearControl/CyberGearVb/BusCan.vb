@@ -202,32 +202,67 @@ Friend Class BusCan
     End Sub
 
     Public Shared Function ParseReceivedMsg(data As Byte(), arbitration_id As UInteger) As ParsedMessage
+        Dim responseType As Byte = CByte((arbitration_id >> 24) And &HFF)
+        If Not responseType = CmdModes.SINGLE_PARAM_READ Then
+            If data.Length >= 6 Then
+                Debug.WriteLine($"Received message with ID 0x{arbitration_id:X}")
+
+                ' Escribe el CAN ID del motor
+                Dim motor_can_id As Byte = CByte((arbitration_id >> 8) And &HFF)
+
+                'Analiza la posición, Velocidad y torque con chequeo de desbordamiento
+                Dim pos As Double
+                Dim vel As Double
+                Dim torque As Double
+                Dim temp As Double
+
+                Try
+                    pos = Calculate.UToF((CInt(data(0)) << 8) + data(1), Constantes.P_MIN, Constantes.P_MAX)
+                    vel = Calculate.UToF((CInt(data(2)) << 8) + data(3), Constantes.V_MIN, Constantes.V_MAX)
+                    torque = Calculate.UToF((CInt(data(4)) << 8) + data(5), Constantes.T_MIN, Constantes.T_MAX)
+                    temp = ((CInt(data(6)) << 8) + data(7)) / 10
+                Catch ex As OverflowException
+                    Debug.WriteLine($"Overflow error: {ex.Message}")
+                    Return New ParsedMessage(0, 0, 0, 0)
+                End Try
+
+                Debug.WriteLine($"Motor CAN ID: {motor_can_id}, pos: {pos:F2} rad, vel: {vel:F2} rad/s, torque: {torque:F2} Nm, temp: {temp:F2} Celsius")
+
+                Return New ParsedMessage(motor_can_id, pos, vel, torque)
+            Else
+                Debug.WriteLine("No message received within the timeout period or insufficient data length.")
+                Return New ParsedMessage(0, 0, 0, 0)
+            End If
+        End If
+        ParseSingleParamReadingMsg(data, arbitration_id)
+    End Function
+    Public Shared Function ParseSingleParamReadingMsg(data As Byte(), arbitration_id As UInteger) As ParsedSingleParameter
         If data.Length >= 6 Then
             Debug.WriteLine($"Received message with ID 0x{arbitration_id:X}")
 
             ' Escribe el CAN ID del motor
-            Dim motor_can_id As Byte = CByte((arbitration_id >> 8) And &HFF)
+            Dim motor_can_id As Byte = CByte((arbitration_id >> 0) And &HFF)
 
             'Analiza la posición, Velocidad y torque con chequeo de desbordamiento
-            Dim pos As Double
-            Dim vel As Double
-            Dim torque As Double
-
+            Dim index As Integer
+            Dim value As Double
+            Dim indexHex As String
             Try
-                pos = Calculate.UToF((CInt(data(0)) << 8) + data(1), Constantes.P_MIN, Constantes.P_MAX)
-                vel = Calculate.UToF((CInt(data(2)) << 8) + data(3), Constantes.V_MIN, Constantes.V_MAX)
-                torque = Calculate.UToF((CInt(data(4)) << 8) + data(5), Constantes.T_MIN, Constantes.T_MAX)
+                index = (CInt(data(0)) >> 0)
+                indexHex = index.ToString("X4")
+
+                value = (CInt(data(4)) << 8) + data(7)
             Catch ex As OverflowException
                 Debug.WriteLine($"Overflow error: {ex.Message}")
-                Return New ParsedMessage(0, 0, 0, 0)
+                Return New ParsedSingleParameter(0, 0, 0)
             End Try
 
-            Debug.WriteLine($"Motor CAN ID: {motor_can_id}, pos: {pos:F2} rad, vel: {vel:F2} rad/s, torque: {torque:F2} Nm")
+            Debug.WriteLine($"Single parameter response frame: Motor CAN ID: {motor_can_id}, Index: 0x7-{indexHex}, value: {value} (See parameterlist to know the Units)")
 
-            Return New ParsedMessage(motor_can_id, pos, vel, torque)
+            Return New ParsedSingleParameter(motor_can_id, index, value)
         Else
             Debug.WriteLine("No message received within the timeout period or insufficient data length.")
-            Return New ParsedMessage(0, 0, 0, 0)
+            Return New ParsedSingleParameter(0, 0, 0)
         End If
     End Function
     Private Sub HandleMessage(canMessage As PcanMessage)
