@@ -1,26 +1,16 @@
-﻿Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Imports System.Text
-Imports System.Threading.Tasks
+﻿Imports System.Threading
 Imports Peak.Can.Basic
-Imports System.Diagnostics
-Imports System.Threading
 
-''' <summary>
-''' Receptor para mensajes CAN usando el canal Pcan.
-''' </summary>
-''' <remarks>
-''' Maneja la recepción de mensajes CAN y la configuración del evento de recepción.
-''' </remarks>
-Friend Class PcanReceiver
+Public Class PcanReceiver
     Private receiveEvent As EventWaitHandle
     Private receiveThread As Thread
     Private isRunning As Boolean
     Private channel As PcanChannel
+    Private messageReceivedHandler As Action(Of PcanMessage)
 
-    Public Sub New(channel As PcanChannel)
+    Public Sub New(channel As PcanChannel, messageReceivedHandler As Action(Of PcanMessage))
         Me.channel = channel
+        Me.messageReceivedHandler = messageReceivedHandler
         receiveEvent = New EventWaitHandle(False, EventResetMode.AutoReset)
     End Sub
 
@@ -66,7 +56,7 @@ Friend Class PcanReceiver
 
     Private Sub ReceiveThreads()
         While isRunning
-            ' Esperar la señal del evento
+            ' Esperar la señal del evento           
             If receiveEvent.WaitOne(50) Then
                 Dim canMessage As PcanMessage = Nothing
                 Dim canTimestamp As ULong
@@ -74,14 +64,16 @@ Friend Class PcanReceiver
                 ' Lee y procesa todos los mensajes CAN en el buffer de recepcion.
                 While Api.Read(channel, canMessage, canTimestamp) = PcanStatus.OK
                     ' Procesa el mensaje recibido
-                    Console.WriteLine($"Mensaje Recibido: ID=0x{canMessage.ID:X} Data= {BitConverter.ToString(canMessage.Data)}")
-                    Console.WriteLine($"TimeStamp: {canTimestamp}")
-
+                    'Console.WriteLine($"Mensaje Recibido: ID=0x{canMessage.ID:X} Data= {BitConverter.ToString(canMessage.Data)}")
+                    'Console.WriteLine($"TimeStamp: {canTimestamp}")
                     ' Parse the received message
                     Dim result = BusCan.ParseReceivedMsg(canMessage.Data, canMessage.ID)
 
                     ' Access and print the fields of the ParsedMessage struct
-                    Console.WriteLine($"Feedback del Motor: Motor CAN ID: {result.MotorCanId}, Position: {result.Position} rad, Velocity: {result.Velocity} rad/s, Torque: {result.Torque} Nm")
+                    'Console.WriteLine($"Feedback del Motor: Motor CAN ID: {result.MotorCanId}, Position: {result.Position} rad, Velocity: {result.Velocity} rad/s, Torque: {result.Torque} Nm")
+                    If canMessage IsNot Nothing AndAlso messageReceivedHandler IsNot Nothing Then
+                        messageReceivedHandler.Invoke(canMessage)
+                    End If
                 End While
 
                 ' Reestablecer el evento
