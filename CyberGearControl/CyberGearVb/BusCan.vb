@@ -19,6 +19,9 @@ Friend Class BusCan
         Me.channel = InicializarCanal()
     End Sub
 
+    ''' <summary>
+    ''' Inicia el canal de comunicacion CANBus y la recepcion de mensajes
+    ''' </summary>
     Private Function InicializarCanal() As PcanChannel
         Dim channel As PcanChannel = PcanChannel.Usb01
 
@@ -54,10 +57,16 @@ Friend Class BusCan
 
     End Sub
 
+    ''' <summary>
+    ''' Crea instancias de IMotor
+    ''' </summary>
     Public Function fuxIMotor(vparIDispositiu As IDispositiu) As IMotor Implements IBusCan.fuxIMotor
         Return New MotorCyberGear(Me, CType(vparIDispositiu.senCodi(), UInteger))
     End Function
 
+    ''' <summary>
+    ''' Crea una lista de la interfaz IDispositiu
+    ''' </summary>
     Public Function secDispositius() As List(Of IDispositiu) Implements IBusCan.secDispositius
         Dim motorCANIDs As List(Of UInteger) = ObtenerIDsDispositivos()
         Dim dispositius As New List(Of IDispositiu)()
@@ -67,6 +76,9 @@ Friend Class BusCan
         Return dispositius
     End Function
 
+    ''' <summary>
+    ''' Recibe el objeto del evento y obtiene el Id de los dispositivos conectados al CANBus
+    ''' </summary>
     Private Function ObtenerIDsDispositivos() As List(Of UInteger)
         Dim deviceIDs As New List(Of UInteger)()
         Dim receivedMessages As New List(Of PcanMessage)()
@@ -114,16 +126,13 @@ Friend Class BusCan
                 End While
             End SyncLock
         End While
-
         RemoveHandler Me.MessageReceived, Nothing
-
         Return deviceIDs
     End Function
 
 
     Public Function SendReceiveCanMessage(MotorCANID As UInteger, cmdMode As UInteger, data1 As Byte()) As CyberGearVb.Struct.CanMessageResult
         Dim arbitrationId As UInteger = (cmdMode << 24) Or (MasterCANID << 8) Or MotorCANID
-
         Dim canMessage As New PcanMessage With {
             .ID = arbitrationId,
             .MsgType = MessageType.Extended,
@@ -201,6 +210,10 @@ Friend Class BusCan
         Debug.WriteLine($"Sent message with ID {arbitrationId:X}, data: {BitConverter.ToString(data1)}")
     End Sub
 
+
+    ''' <summary>
+    ''' Recibe un mensaje del buffer y lo lee para obtener los datos del frame de respuesta
+    ''' </summary>
     Public Shared Function ParseReceivedMsg(data As Byte(), arbitration_id As UInteger) As ParsedMessage
         If data.Length >= 6 Then
             Debug.WriteLine($"Received message with ID 0x{arbitration_id:X}")
@@ -230,6 +243,10 @@ Friend Class BusCan
             Return New ParsedMessage(0, 0, 0, 0)
         End If
     End Function
+
+    ''' <summary>
+    ''' Administra el evento cuando se reciben mensajes nuevos en el buffer
+    ''' </summary>
     Private Sub HandleMessage(canMessage As PcanMessage)
         RaiseEvent MessageReceived(canMessage)
     End Sub

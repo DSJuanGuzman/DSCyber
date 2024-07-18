@@ -6,12 +6,11 @@ Module Module1
     Sub Main()
         Dim busCanFactory As IBusCanFactory = New BusCanFactory()
         Dim _busCan As IBusCan
-        Dim MasterCANID = 0
         Console.WriteLine("Presione cualquier tecla para iniciar el servicio")
         Console.ReadKey()
         Console.WriteLine("Ingrese el MasterCANID:")
-        MasterCANID = Console.ReadLine()
-        _busCan = busCanFactory.CreateBusCan(MasterCANID)
+        Dim MasterCANID As Integer = Console.ReadLine()
+        _busCan = busCanFactory.fuxBusCan(MasterCANID)
         If _busCan IsNot Nothing Then
             Dim SecDispositius As List(Of IDispositiu) = _busCan.secDispositius()
             If SecDispositius IsNot Nothing Then
