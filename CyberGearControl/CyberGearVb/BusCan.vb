@@ -10,6 +10,10 @@ Friend Class BusCan
 
     Private MasterCANID As UInteger 'CANID
     Private channel As PcanChannel 'Canal de Comunicación CAN
+    Private receivedMessages As New Queue(Of PcanMessage)()
+    Private messageLock As New Object()
+    Public Event MessageReceived As Action(Of PcanMessage)
+
 
     Public Sub New(masterCANID As UInteger)
         ' Inicializa El Constructor
@@ -29,7 +33,7 @@ Friend Class BusCan
         Else
             Console.WriteLine($"El hardware representado por el canal {channel} se ha inicializado correctamente")
             Console.ReadKey()
-            Dim receiver As New PcanReceiver(channel)
+            Dim receiver As New PcanReceiver(channel, AddressOf HandleMessage)
             If receiver.Start() Then
                 Console.WriteLine("El Receptor ha iniciado, Si deseas detener el proceso de recepcion, por favor llama el metodo 'Receiver.Stop()'")
             Else
@@ -38,6 +42,7 @@ Friend Class BusCan
         End If
         Return channel
     End Function
+
 
     Public Sub FinalizarCanal() Implements IBusCan.FinalizarCanal
         Dim result = Api.Uninitialize(channel)
@@ -66,17 +71,25 @@ Friend Class BusCan
 
     Private Function ObtenerIDsDispositivos() As List(Of UInteger)
         Dim deviceIDs As New List(Of UInteger)()
+        Dim receivedMessages As New List(Of PcanMessage)()
+
+        ' Evento para manejar los mensajes recibidos
+        AddHandler Me.MessageReceived, Sub(msg)
+                                           SyncLock receivedMessages
+                                               receivedMessages.Add(msg)
+                                           End SyncLock
+                                       End Sub
 
         ' Enviar un mensaje de difusión para descubrir dispositivos
-        Dim arbitrationId As UInteger = &H7DF ' Mensaje de diagnóstico estándar
-        Dim data() As Byte = New Byte() {&H2, &H1, &H0, 0, 0, 0, 0, 0} ' Solicitud de diagnóstico genérico
+        Dim arbitrationId As UInteger = 0 ' Mensaje de diagnóstico estándar
+        Dim data() As Byte = New Byte() {0} ' Solicitud de diagnóstico genérico
 
         Dim canMessage As New PcanMessage With {
-            .ID = arbitrationId,
-            .MsgType = MessageType.Standard,
-            .DLC = CByte(data.Length),
-            .Data = data
-        }
+        .ID = arbitrationId,
+        .MsgType = MessageType.Extended,
+        .DLC = CByte(data.Length),
+        .data = data
+    }
 
         ' Escribir el mensaje de difusión
         Dim writeStatus As PcanStatus = Api.Write(Me.channel, canMessage)
@@ -87,23 +100,27 @@ Friend Class BusCan
 
         Debug.WriteLine("Broadcast message sent, waiting for responses...")
 
-        ' Leer respuestas
-        Dim receivedMsg As PcanMessage = Nothing
-        Dim timestamp As ULong = Nothing
+        ' Esperar respuestas
         Dim endTime As DateTime = DateTime.Now.AddSeconds(5) ' Esperar por 5 segundos para respuestas
         While DateTime.Now < endTime
-            Dim readStatus As PcanStatus = Api.Read(Me.channel, receivedMsg, timestamp)
-            If readStatus = PcanStatus.OK Then
-                Dim deviceId As UInteger = receivedMsg.ID
-                If Not deviceIDs.Contains(deviceId) Then
-                    deviceIDs.Add(deviceId)
-                End If
-            End If
-            Thread.Sleep(10) ' Pequeña pausa para no saturar el CPU
+            SyncLock receivedMessages
+                While receivedMessages.Count > 0
+                    Dim receivedMsg As PcanMessage = receivedMessages(0)
+                    receivedMessages.RemoveAt(0)
+                    Dim result As ParsedMessage = ParseReceivedMsg(receivedMsg.Data, receivedMsg.ID)
+                    Dim deviceId As UInteger = result.MotorCanId
+                    If Not deviceIDs.Contains(deviceId) Then
+                        deviceIDs.Add(deviceId)
+                    End If
+                End While
+            End SyncLock
         End While
+
+        RemoveHandler Me.MessageReceived, Nothing
 
         Return deviceIDs
     End Function
+
 
     Public Function SendReceiveCanMessage(MotorCANID As UInteger, cmdMode As UInteger, data1 As Byte()) As CyberGearVb.Struct.CanMessageResult
         Dim arbitrationId As UInteger = (cmdMode << 24) Or (MasterCANID << 8) Or MotorCANID
@@ -161,7 +178,7 @@ Friend Class BusCan
         Dim canTimestamp As ULong
         If Api.Read(channel, meessage, canTimestamp) = PcanStatus.OK Then
             'Devuelve y asigna La ID del motor Automaticamente
-            Dim result As ParsedMessage = ParseReceivedMsg(canMessage.Data, canMessage.ID)
+            Dim result As ParsedMessage = ParseReceivedMsg(meessage.Data, meessage.ID)
             Return result.MotorCanId
         End If
         Return 0
@@ -194,22 +211,36 @@ Friend Class BusCan
     End Sub
 
     Public Shared Function ParseReceivedMsg(data As Byte(), arbitration_id As UInteger) As ParsedMessage
-        If data.Length > 0 Then
+        If data.Length >= 6 Then
             Debug.WriteLine($"Received message with ID 0x{arbitration_id:X}")
 
             ' Escribe el CAN ID del motor
             Dim motor_can_id As Byte = CByte((arbitration_id >> 8) And &HFF)
-            'Analiza la posición, Velocidad y torque
-            Dim pos As Double = Calculate.UToF((data(0) << 8) + data(1), Constantes.P_MIN, Constantes.P_MAX)
-            Dim vel As Double = Calculate.UToF((data(2) << 8) + data(3), Constantes.V_MIN, Constantes.V_MAX)
-            Dim torque As Double = Calculate.UToF((data(4) << 8) + data(5), Constantes.T_MIN, Constantes.T_MAX)
+
+            'Analiza la posición, Velocidad y torque con chequeo de desbordamiento
+            Dim pos As Double
+            Dim vel As Double
+            Dim torque As Double
+
+            Try
+                pos = Calculate.UToF((CInt(data(0)) << 8) + data(1), Constantes.P_MIN, Constantes.P_MAX)
+                vel = Calculate.UToF((CInt(data(2)) << 8) + data(3), Constantes.V_MIN, Constantes.V_MAX)
+                torque = Calculate.UToF((CInt(data(4)) << 8) + data(5), Constantes.T_MIN, Constantes.T_MAX)
+            Catch ex As OverflowException
+                Debug.WriteLine($"Overflow error: {ex.Message}")
+                Return New ParsedMessage(0, 0, 0, 0)
+            End Try
 
             Debug.WriteLine($"Motor CAN ID: {motor_can_id}, pos: {pos:F2} rad, vel: {vel:F2} rad/s, torque: {torque:F2} Nm")
 
             Return New ParsedMessage(motor_can_id, pos, vel, torque)
         Else
-            Debug.WriteLine("No message received within the timeout period.")
+            Debug.WriteLine("No message received within the timeout period or insufficient data length.")
             Return New ParsedMessage(0, 0, 0, 0)
         End If
     End Function
+    Private Sub HandleMessage(canMessage As PcanMessage)
+        RaiseEvent MessageReceived(canMessage)
+    End Sub
+
 End Class

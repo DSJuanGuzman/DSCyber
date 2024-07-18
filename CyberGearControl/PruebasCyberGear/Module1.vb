@@ -16,7 +16,7 @@ Module Module1
             Dim SecDispositius As List(Of IDispositiu) = _busCan.secDispositius()
             If SecDispositius IsNot Nothing Then
                 Console.WriteLine("Dispositivos Disponibles:")
-                For i As Integer = 0 To SecDispositius.Count()
+                For i As Integer = 0 To SecDispositius.Count() - 1
                     Console.WriteLine($"{i} Motor CAN ID: {SecDispositius(i).senCodi}")
                 Next
                 Console.WriteLine("Por favor seleccione el motor a iniciar:")
@@ -24,10 +24,10 @@ Module Module1
                 If _Motor IsNot Nothing Then
                     Console.WriteLine("A continuacion se realizaran las pruebas del motor")
                     Console.WriteLine("Definir Cero Mecanico")
+                    _Motor.EnableMotor()
                     _Motor.SetMechanicalZero()
                     Console.WriteLine("Iniciando el modo de posicion..")
                     _Motor.SetPositionMode()
-                    _Motor.EnableMotor()
                     Console.WriteLine("ingrese velocidad Limite Para el modo posicion:")
                     _Motor.SetLimitSpeed(Console.ReadLine())
                     Console.WriteLine("Ingrese la pocision objetivo (en radianes)")
