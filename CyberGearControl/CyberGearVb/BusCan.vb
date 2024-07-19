@@ -45,7 +45,7 @@ Friend Class BusCan
     End Function
 
 
-    Public Sub FinalizarCanal() Implements IBusCan.FinalizarCanal
+    Public Sub FinalitzarCanal() Implements IBusCan.FinalitzarCanal
         Dim result = Api.Uninitialize(channel)
         If Not result = PcanStatus.OK Then
             Dim errorText = String.Empty
@@ -68,7 +68,7 @@ Friend Class BusCan
     ''' Crea una lista de la interfaz IDispositiu
     ''' </summary>
     Public Function secDispositius() As List(Of IDispositiu) Implements IBusCan.secDispositius
-        Dim motorCANIDs As List(Of UInteger) = ObtenerIDsDispositivos()
+        Dim motorCANIDs As List(Of UInteger) = ObtenirIDsDispositius()
         Dim dispositius As New List(Of IDispositiu)()
         For Each id In motorCANIDs
             dispositius.Add(New Dispositiu(CInt(id)))
@@ -79,7 +79,7 @@ Friend Class BusCan
     ''' <summary>
     ''' Recibe el objeto del evento y obtiene el Id de los dispositivos conectados al CANBus
     ''' </summary>
-    Private Function ObtenerIDsDispositivos() As List(Of UInteger)
+    Private Function ObtenirIDsDispositius() As List(Of UInteger)
         Dim deviceIDs As New List(Of UInteger)()
         Dim receivedMessages As New List(Of PcanMessage)()
 
@@ -118,7 +118,7 @@ Friend Class BusCan
                 While receivedMessages.Count > 0
                     Dim receivedMsg As PcanMessage = receivedMessages(0)
                     receivedMessages.RemoveAt(0)
-                    Dim result As ParsedMessage = ParseReceivedMsg(receivedMsg.Data, receivedMsg.ID)
+                    Dim result As ParsedMessage = AnalitzarMissatgeRebut(receivedMsg.Data, receivedMsg.ID)
                     Dim deviceId As UInteger = result.MotorCanId
                     If Not deviceIDs.Contains(deviceId) Then
                         deviceIDs.Add(deviceId)
@@ -166,7 +166,7 @@ Friend Class BusCan
     ''' <summary>
     ''' Enviar mensajes CAN con Id Personalizado (Datos adicionales)
     ''' </summary>
-    Public Sub SendCustomCanMessage(arbitrationId As UInteger, data1 As Byte()) Implements IBusCan.SendCustomCanMessage
+    Public Sub EnviarMissatgeCanPersonalitzat(arbitrationId As UInteger, data1 As Byte()) Implements IBusCan.EnviarMissatgeCanPersonalitzat
         Dim canMessage As New PcanMessage With {
             .ID = arbitrationId,
             .MsgType = MessageType.Extended,
@@ -189,7 +189,7 @@ Friend Class BusCan
     ''' </summary>
     ''' <param name="cmdMode"></param>
     ''' <param name="data1"></param>
-    Public Sub SendCanMessage(MotorCANID As UInteger, cmdMode As UInteger, data1 As Byte()) Implements IBusCan.SendCanMessage
+    Public Sub EnviarMissatgeCan(MotorCANID As UInteger, cmdMode As UInteger, data1 As Byte()) Implements IBusCan.EnviarMissatgeCan
         ' Calcular ID DE Arbitraje
         Dim arbitrationId As UInteger = (cmdMode << 24) Or (MasterCANID << 8) Or MotorCANID
         ' Estructura de un mensaje CAN
@@ -214,7 +214,7 @@ Friend Class BusCan
     ''' <summary>
     ''' Recibe un mensaje del buffer y lo lee para obtener los datos del frame de respuesta
     ''' </summary>
-    Public Shared Function ParseReceivedMsg(data As Byte(), arbitration_id As UInteger) As ParsedMessage
+    Public Shared Function AnalitzarMissatgeRebut(data As Byte(), arbitration_id As UInteger) As ParsedMessage
         If data.Length >= 6 Then
             Debug.WriteLine($"Received message with ID 0x{arbitration_id:X}")
 
@@ -244,9 +244,9 @@ Friend Class BusCan
             Debug.WriteLine("No message received within the timeout period or insufficient data length.")
             Return New ParsedMessage(0, 0, 0, 0)
         End If
-        ParseSingleParamReadingMsg(data, arbitration_id)
+        AnalitzarMissatgeLecturaParametreUnic(data, arbitration_id)
     End Function
-    Public Shared Function ParseSingleParamReadingMsg(data As Byte(), arbitration_id As UInteger) As ParsedSingleParameter
+    Public Shared Function AnalitzarMissatgeLecturaParametreUnic(data As Byte(), arbitration_id As UInteger) As ParsedSingleParameter
         If data.Length >= 6 Then
             Debug.WriteLine($"Received message with ID 0x{arbitration_id:X}")
 

@@ -1,8 +1,8 @@
 ﻿
 Public Interface IBusCan
-    Sub FinalizarCanal()
+    Sub FinalitzarCanal()
     Function secDispositius() As List(Of IDispositiu)
     Function fuxIMotor(vparIDispositiu As IDispositiu) As IMotor
-    Sub SendCustomCanMessage(arbitrationId As UInteger, data1 As Byte())
-    Sub SendCanMessage(MotorCANID As UInteger, cmdMode As UInteger, data1 As Byte())
+    Sub EnviarMissatgeCanPersonalitzat(arbitrationId As UInteger, data1 As Byte())
+    Sub EnviarMissatgeCan(MotorCANID As UInteger, cmdMode As UInteger, data1 As Byte())
 End Interface

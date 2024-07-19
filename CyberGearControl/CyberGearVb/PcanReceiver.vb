@@ -69,17 +69,18 @@ Public Class PcanReceiver
                     'Console.WriteLine($"TimeStamp: {canTimestamp}")
                     ' Parse the received message
                     Dim responseType As Byte = CByte((canMessage.ID >> 24) And &HFF)
-                    If Not responseType = CmdModes.SINGLE_PARAM_READ Then
-                        Dim result = BusCan.ParseSingleParamReadingMsg(canMessage.Data, canMessage.ID)
+                    If responseType = CmdModes.SINGLE_PARAM_READ Then
+                        Thread.Sleep(30)
+                        Dim result = BusCan.AnalitzarMissatgeLecturaParametreUnic(canMessage.Data, canMessage.ID)
                         Console.WriteLine(result.Value)
                     Else
-                        Dim result = BusCan.ParseReceivedMsg(canMessage.Data, canMessage.ID)
+                        Dim result = BusCan.AnalitzarMissatgeRebut(canMessage.Data, canMessage.ID)
                     End If
                     ' Access and print the fields of the ParsedMessage struct
                     'Console.WriteLine($"Feedback del Motor: Motor CAN ID: {result.MotorCanId}, Position: {result.Position} rad, Velocity: {result.Velocity} rad/s, Torque: {result.Torque} Nm")
                     If canMessage IsNot Nothing AndAlso messageReceivedHandler IsNot Nothing Then
-                            messageReceivedHandler.Invoke(canMessage)
-                        End If
+                        messageReceivedHandler.Invoke(canMessage)
+                    End If
                 End While
 
                 ' Reestablecer el evento
