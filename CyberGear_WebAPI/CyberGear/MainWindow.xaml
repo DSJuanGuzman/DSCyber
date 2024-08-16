@@ -48,6 +48,7 @@
                         <ComboBoxItem Content="Modo Corriente" />
                     </ComboBox>
                     <Button HorizontalAlignment="Right" Content="Establecer" Width="100" Height="25" Margin="10" Click="EstablecerModo"/>
+                    <Button HorizontalAlignment="Right" Content="Zero" Width="100" Height="25" Margin="10,0,150,0" Click="PuntoZero"/>
 
                     <!-- TabControl para las secciones -->
                     <TabControl Grid.Row="1" x:Name="MainTabControl">

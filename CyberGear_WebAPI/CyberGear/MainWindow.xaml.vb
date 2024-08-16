@@ -37,42 +37,58 @@ Class MainWindow
         If IsServiceInitialized = False Then
             Dim Response As HttpResponseMessage = Await client.PostAsync(BaseUri + "Motor/Iniciar", Nothing)
             If Response.IsSuccessStatusCode Then
-                Message_Log.Text = "Se ha iniciado el servicio."
+                Message_Log.AppendText("Se ha iniciado el servicio.")
+                Message_Log.AppendText(Environment.NewLine)
                 IsServiceInitialized = True
                 IniciarMotor_Button.IsEnabled = True
                 Detener_Button.IsEnabled = True
                 Iniciar_Servicio_Button.IsEnabled = False
             Else
-                Message_Log.Text = "Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase
+                Message_Log.AppendText("Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase)
+                Message_Log.AppendText(Environment.NewLine)
             End If
         End If
         MessageBox.Show("El serivico ya se encuentra inicializado")
+    End Sub
+    Private Async Sub PuntoZero(sender As Object, e As RoutedEventArgs)
+        CurrentMode = String.Empty
+        Dim Response As HttpResponseMessage = Await client.PostAsync($"{BaseUri}/Motor/CeroMecanico", Nothing)
+        If Response.IsSuccessStatusCode Then
+            Message_Log.Text = "Se ha enviado el comando"
+        Else
+            Message_Log.Text = "Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase
+        End If
+
     End Sub
     Private Async Sub DetenerServicio(sender As Object, e As RoutedEventArgs)
         Detener_Button.IsEnabled = IsServiceInitialized
 
         Dim Response As HttpResponseMessage = Await client.PostAsync(BaseUri + "Motor/Terminar", Nothing)
         If Response.IsSuccessStatusCode Then
-            Message_Log.Text = "Se ha finalizado el servicio."
+            Message_Log.AppendText("Se ha finalizado el servicio.")
+            Message_Log.AppendText(Environment.NewLine)
             IniciarMotor_Button.IsEnabled = False
             Detener_Button.IsEnabled = False
             Iniciar_Servicio_Button.IsEnabled = True
         Else
-            Message_Log.Text = "Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase
+            Message_Log.AppendText("Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase)
+            Message_Log.AppendText(Environment.NewLine)
         End If
     End Sub
     Private Async Sub ActivarMotor_Button(sender As Object, e As RoutedEventArgs)
         If ID_TextBox.Text IsNot String.Empty Then
             Dim Response As HttpResponseMessage = Await client.PostAsync($"{BaseUri}/Motor/Activar/{ID_TextBox.Text}", Nothing)
             If Response.IsSuccessStatusCode Then
-                Message_Log.Text = "Se ha iniciado el Dispositivo."
+                Message_Log.AppendText("Se ha iniciado el Dispositivo.")
+                Message_Log.AppendText(Environment.NewLine)
                 IsMotorInitialized = True
                 If IsMotorInitialized And IsServiceInitialized Then
                     Control_Tab.IsEnabled = IsMotorInitialized
                     Desactivar_Motor_Button.IsEnabled = True
                 End If
             Else
-                Message_Log.Text = "Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase
+                Message_Log.AppendText("Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase)
+                Message_Log.AppendText(Environment.NewLine)
             End If
         End If
     End Sub
@@ -80,14 +96,16 @@ Class MainWindow
         If ID_TextBox.Text IsNot String.Empty Then
             Dim Response As HttpResponseMessage = Await client.PostAsync($"{BaseUri}/Motor/Desactivar", Nothing)
             If Response.IsSuccessStatusCode Then
-                Message_Log.Text = "Se ha Desactivado el Dispositivo."
+                Message_Log.AppendText("Se ha Desactivado el Dispositivo.")
+                Message_Log.AppendText(Environment.NewLine)
                 IsMotorInitialized = False
                 Control_Tab.IsEnabled = False
                 Detener_Button.IsEnabled = True
                 IniciarMotor_Button.IsEnabled = True
                 Desactivar_Motor_Button.IsEnabled = False
             Else
-                Message_Log.Text = "Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase
+                Message_Log.AppendText("Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase)
+                Message_Log.AppendText(Environment.NewLine)
             End If
         End If
     End Sub
@@ -100,34 +118,42 @@ Class MainWindow
             Case "Modo Control"
                 Dim Response As HttpResponseMessage = Await client.PostAsync(BaseUri + "Motor/ModoControl", Nothing)
                 If Response.IsSuccessStatusCode Then
-                    Message_Log.Text = "Se ha establecido el modo control."
+                    Message_Log.AppendText("Se ha establecido el modo control.")
+                    Message_Log.AppendText(Environment.NewLine)
                     CurrentMode = selectedOption
                 Else
-                    Message_Log.Text = "Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase
+                    Message_Log.AppendText("Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase)
+                    Message_Log.AppendText(Environment.NewLine)
                 End If
             Case "Modo Posicion"
                 Dim Response As HttpResponseMessage = Await client.PostAsync(BaseUri + "Motor/ModoPosicion", Nothing)
                 If Response.IsSuccessStatusCode Then
-                    Message_Log.Text = "Se ha establecido el modo posicion."
+                    Message_Log.AppendText("Se ha establecido el modo posicion.")
+                    Message_Log.AppendText(Environment.NewLine)
                     CurrentMode = selectedOption
                 Else
-                    Message_Log.Text = "Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase
+                    Message_Log.AppendText("Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase)
+                    Message_Log.AppendText(Environment.NewLine)
                 End If
             Case "Modo Velocidad"
                 Dim Response As HttpResponseMessage = Await client.PostAsync(BaseUri + "Motor/ModoVelocidad", Nothing)
                 If Response.IsSuccessStatusCode Then
-                    Message_Log.Text = "Se ha establecido el modo velocidad."
+                    Message_Log.AppendText("Se ha establecido el modo velocidad.")
+                    Message_Log.AppendText(Environment.NewLine)
                     CurrentMode = selectedOption
                 Else
-                    Message_Log.Text = "Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase
+                    Message_Log.AppendText("Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase)
+                    Message_Log.AppendText(Environment.NewLine)
                 End If
             Case "Modo Corriente"
                 Dim Response As HttpResponseMessage = Await client.PostAsync(BaseUri + "Motor/ModoCorriente", Nothing)
                 If Response.IsSuccessStatusCode Then
-                    Message_Log.Text = "Se ha establecido el modo corriente."
+                    Message_Log.AppendText("Se ha establecido el modo corriente.")
+                    Message_Log.AppendText(Environment.NewLine)
                     CurrentMode = selectedOption
                 Else
-                    Message_Log.Text = "Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase
+                    Message_Log.AppendText("Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase)
+                    Message_Log.AppendText(Environment.NewLine)
                 End If
         End Select
     End Sub
@@ -164,35 +190,44 @@ Class MainWindow
         Dim contenido As New StringContent(json, Encoding.UTF8, "application/json")
         Dim Response As HttpResponseMessage = Await client.PostAsync($"{BaseUri}/Motor/ComandoControl", contenido)
         If Response.IsSuccessStatusCode Then
-            Message_Log.Text = "Se ha enviado el comando"
+            Message_Log.AppendText("Se ha enviado el comando")
+            Message_Log.AppendText(Environment.NewLine)
         Else
-            Message_Log.Text = "Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase
+            Message_Log.AppendText("Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase)
+            Message_Log.AppendText(Environment.NewLine)
         End If
     End Sub
     Private Async Sub Posicion(velocityValue As Single, targetValue As Single)
         Dim Responsev As HttpResponseMessage = Await client.PostAsync($"{BaseUri}/Motor//LimiteVelocidad/{velocityValue}", Nothing)
         Dim Response As HttpResponseMessage = Await client.PostAsync($"{BaseUri}/Motor/Posicion/{targetValue}", Nothing)
         If Response.IsSuccessStatusCode And Responsev.IsSuccessStatusCode Then
-            Message_Log.Text = "Se ha enviado el comando"
+            Message_Log.AppendText("Se ha enviado el comando")
+            Message_Log.AppendText(Environment.NewLine)
         Else
-            Message_Log.Text = "Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase
-            Message_Log.Text = "Error en la solicitud: " & Responsev.StatusCode & " " & Responsev.ReasonPhrase
+            Message_Log.AppendText("Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase)
+            Message_Log.AppendText(Environment.NewLine)
+            Message_Log.AppendText("Error en la solicitud: " & Responsev.StatusCode & " " & Response.ReasonPhrase)
+            Message_Log.AppendText(Environment.NewLine)
         End If
     End Sub
     Private Async Sub Velocidad(value As Single)
         Dim Response As HttpResponseMessage = Await client.PostAsync($"{BaseUri}/Motor/Velocidad/{value}", Nothing)
         If Response.IsSuccessStatusCode Then
-            Message_Log.Text = "Se ha enviado el comando"
+            Message_Log.AppendText("Se ha enviado el comando")
+            Message_Log.AppendText(Environment.NewLine)
         Else
-            Message_Log.Text = "Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase
+            Message_Log.AppendText("Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase)
+            Message_Log.AppendText(Environment.NewLine)
         End If
     End Sub
     Private Async Sub Corriente(value As Single)
         Dim Response As HttpResponseMessage = Await client.PostAsync($"{BaseUri}/Motor/Corriente/{value}", Nothing)
         If Response.IsSuccessStatusCode Then
-            Message_Log.Text = "Se ha enviado el comando"
+            Message_Log.AppendText("Se ha enviado el comando")
+            Message_Log.AppendText(Environment.NewLine)
         Else
-            Message_Log.Text = "Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase
+            Message_Log.AppendText("Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase)
+            Message_Log.AppendText(Environment.NewLine)
         End If
     End Sub
     Private Async Sub EscribirParametro(index As UInteger, value As Single)
@@ -204,19 +239,23 @@ Class MainWindow
         Dim contenido As New StringContent(json, Encoding.UTF8, "application/json")
         Dim Response As HttpResponseMessage = Await client.PostAsync($"{BaseUri}/Motor/EscribirParametro", contenido)
         If Response.IsSuccessStatusCode Then
-            Message_Log.Text = $"Se ha escrito sobre el parametro {index}"
+            Message_Log.AppendText($"Se ha escrito sobre el parametro {index}")
+            Message_Log.AppendText(Environment.NewLine)
         Else
-            Message_Log.Text = "Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase
+            Message_Log.AppendText("Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase)
+            Message_Log.AppendText(Environment.NewLine)
         End If
     End Sub
     Private Async Sub LeerParametro(index As UInteger)
         Dim respuesta As HttpResponseMessage = Await client.GetAsync($"{BaseUri}/Motor/LeerParametro/{index}")
         If respuesta.IsSuccessStatusCode Then
             Dim respuestaContenido As String = Await respuesta.Content.ReadAsStringAsync()
-            Message_Log.Text = "Solicitud exitosa: " & respuestaContenido
+            Message_Log.AppendText("Solicitud exitosa: " & respuestaContenido)
+            Message_Log.AppendText(Environment.NewLine)
             Value_Textbox.Text = respuestaContenido
         Else
-            Message_Log.Text = "Error en la solicitud: " & respuesta.StatusCode & " " & respuesta.ReasonPhrase
+            Message_Log.AppendText("Error en la solicitud: " & respuesta.StatusCode & " " & respuesta.ReasonPhrase)
+            Message_Log.AppendText(Environment.NewLine)
         End If
     End Sub
 End Class
