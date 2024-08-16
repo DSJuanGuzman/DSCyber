@@ -1,7 +1,5 @@
 ﻿
 Imports Dll100PortCyberGear
-Imports Dll060CyberGear.nsConstants
-Imports Dll060CyberGear.Struct
 Imports Peak.Can.Basic
 Imports CyberGearVb.nsConstants
 Imports CyberGearVb.Struct
