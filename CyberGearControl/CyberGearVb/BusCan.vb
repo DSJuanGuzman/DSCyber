@@ -2,8 +2,11 @@
 Imports Peak.Can.Basic
 Imports System.Threading
 Imports Dll100PortCyberGear
-Imports CyberGearVb.Struct
+Imports Dll060CyberGear.Struct
+Imports Dll060CyberGear.nsConstants
 Imports CyberGearVb.nsConstants
+Imports CyberGearVb.Struct
+
 
 Friend Class BusCan
     Implements IBusCan
@@ -62,6 +65,10 @@ Friend Class BusCan
     ''' </summary>
     Public Function fuxIMotor(vparIDispositiu As IDispositiu) As IMotor Implements IBusCan.fuxIMotor
         Return New MotorCyberGear(Me, CType(vparIDispositiu.senCodi(), UInteger))
+    End Function
+
+    Public Function fuxIMotor(vparCANID As Integer) As IMotor Implements IBusCan.fuxIMotor
+        Return New MotorCyberGear(Me, vparCANID)
     End Function
 
     ''' <summary>
@@ -130,8 +137,7 @@ Friend Class BusCan
         Return deviceIDs
     End Function
 
-
-    Public Function SendReceiveCanMessage(MotorCANID As UInteger, cmdMode As UInteger, data1 As Byte()) As CyberGearVb.Struct.CanMessageResult
+    Public Function SendReceiveCanMessage(MotorCANID As UInteger, cmdMode As UInteger, data1 As Byte()) As Dll060CyberGear.Struct.CanMessageResult
         Dim arbitrationId As UInteger = (cmdMode << 24) Or (MasterCANID << 8) Or MotorCANID
         Dim canMessage As New PcanMessage With {
             .ID = arbitrationId,
@@ -166,23 +172,35 @@ Friend Class BusCan
     ''' <summary>
     ''' Enviar mensajes CAN con Id Personalizado (Datos adicionales)
     ''' </summary>
-    Public Sub EnviarMissatgeCanPersonalitzat(arbitrationId As UInteger, data1 As Byte()) Implements IBusCan.EnviarMissatgeCanPersonalitzat
+    Public Function EnviarMissatgeCanPersonalitzat(arbitrationId As UInteger, data1 As Byte()) As MotorData Implements IBusCan.EnviarMissatgeCanPersonalitzat
+        Dim receivedMessages As New List(Of PcanMessage)()
+        AddHandler Me.MessageReceived, Sub(msg)
+                                           SyncLock receivedMessages
+                                               receivedMessages.Add(msg)
+                                           End SyncLock
+                                       End Sub
         Dim canMessage As New PcanMessage With {
             .ID = arbitrationId,
             .MsgType = MessageType.Extended,
             .DLC = CByte(data1.Length),
             .Data = data1
         }
-
-        ' Write the CAN message
         Dim writeStatus As PcanStatus = Api.Write(Me.channel, canMessage)
         If writeStatus <> PcanStatus.OK Then
             Debug.WriteLine("Failed to send the message.")
+            Return New MotorData(0, 0, 0, 0, 0)
         End If
-
-        ' Output details of the sent message
-        Debug.WriteLine($"Sent message with ID {arbitrationId:X}, data: {BitConverter.ToString(data1)}")
-    End Sub
+        SyncLock receivedMessages
+            While receivedMessages.Count > 0
+                Dim receivedMsg As PcanMessage = receivedMessages(0)
+                receivedMessages.RemoveAt(0)
+                Dim result As ParsedMessage = AnalitzarMissatgeRebut(receivedMsg.Data, receivedMsg.ID)
+                Return New MotorData(result.Position, result.Velocity, result.Temp, result.Torque, result.MotorCanId)
+            End While
+        End SyncLock
+        RemoveHandler Me.MessageReceived, Nothing
+        Return New MotorData(0, 0, 0, 0, 0)
+    End Function
 
     ''' <summary>
     ''' Enviar mensajes CAN
@@ -234,15 +252,15 @@ Friend Class BusCan
                 temp = ((CInt(data(6)) << 8) + data(7)) / 10
             Catch ex As OverflowException
                 Debug.WriteLine($"Overflow error: {ex.Message}")
-                Return New ParsedMessage(0, 0, 0, 0)
+                Return New ParsedMessage(0, 0, 0, 0, 0)
             End Try
 
             Debug.WriteLine($"Motor CAN ID: {motor_can_id}, pos: {pos:F2} rad, vel: {vel:F2} rad/s, torque: {torque:F2} Nm, temp: {temp:F2} Celsius")
 
-            Return New ParsedMessage(motor_can_id, pos, vel, torque)
+            Return New ParsedMessage(motor_can_id, pos, vel, torque, temp)
         Else
             Debug.WriteLine("No message received within the timeout period or insufficient data length.")
-            Return New ParsedMessage(0, 0, 0, 0)
+            Return New ParsedMessage(0, 0, 0, 0, 0)
         End If
         AnalitzarMissatgeLecturaParametreUnic(data, arbitration_id)
     End Function

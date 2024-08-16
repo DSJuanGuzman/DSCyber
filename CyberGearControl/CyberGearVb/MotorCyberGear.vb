@@ -1,12 +1,10 @@
-﻿Imports System
-Imports System.Linq
-Imports Peak.Can.Basic
-Imports System.Diagnostics
-Imports System.Threading
+﻿
 Imports Dll100PortCyberGear
+Imports Dll060CyberGear.nsConstants
+Imports Dll060CyberGear.Struct
+Imports Peak.Can.Basic
 Imports CyberGearVb.nsConstants
-Imports System.Reflection
-Imports Peak
+Imports CyberGearVb.Struct
 
 
 ''' <summary>
@@ -20,6 +18,7 @@ Friend Class MotorCyberGear
 
     Private ReadOnly _busCan As IBusCan
     Private ReadOnly MotorCANID As UInteger
+    Public Event MessageReceived As Action(Of PcanMessage)
 
     Public Sub New(busCan As IBusCan, motorCANID As UInteger)
         _busCan = busCan
@@ -42,13 +41,26 @@ Friend Class MotorCyberGear
         _busCan.EnviarMissatgeCan(MotorCANID, CType(CmdModes.SINGLE_PARAM_WRITE, UInteger), data1)
     End Sub
 
+    ''' <summary>
+    ''' Devuelve el estado actual del motor como un objeto motor data con su velocidad,posicion,temperatura y torque
+    ''' </summary>
+    Public Function RebreEstatMotor() As MotorData Implements IMotor.RebreStatMotor
+        Dim arbitrationId As UInteger = (CType(CmdModes.GET_DEVICE_ID, UInteger) << 24) Or (0 << 8) Or MotorCANID
+        Dim data1 As Byte() = New Byte() {0}
+        Return _busCan.EnviarMissatgeCanPersonalitzat(arbitrationId, data1)
+    End Function
+
+    ''' <summary>
+    ''' asignacion de un unico valor en el indice ya especificado (Sobrecarga)
+    ''' </summary>
+    ''' <param name="index"></param>
+    ''' <param name="byteValue"></param>
     Public Sub EscriureParametreUnic(index As UInteger, byteValue As Byte) Implements IMotor.EscriureParametreUnic
         ' crea una matriz que contengasolo este valor de byte y agrega al index
         Dim bs As Byte() = New Byte() {byteValue}
         bs = bs.Concat(Enumerable.Repeat(CByte(0), 3)).ToArray()
         Dim data_index As Byte() = BitConverter.GetBytes(index)
         Dim data1 As Byte() = data_index.Concat(bs).ToArray()
-
         ' Enviar mensaje CAN
         _busCan.EnviarMissatgeCan(MotorCANID, CType(CmdModes.SINGLE_PARAM_WRITE, UInteger), data1)
     End Sub
@@ -57,12 +69,28 @@ Friend Class MotorCyberGear
     ''' lee un unico parametro del index indicado
     ''' </summary>
     ''' <param name="index"></param>
-    Public Sub LlegirParametreUnic(index As UInteger) Implements IMotor.LlegirParametreUnic
+    Public Function LlegirParametreUnic(index As UInteger) As String Implements IMotor.LlegirParametreUnic
+        Dim receivedMessages As New List(Of PcanMessage)()
+        AddHandler Me.MessageReceived, Sub(msg)
+                                           SyncLock receivedMessages
+                                               receivedMessages.Add(msg)
+                                           End SyncLock
+                                       End Sub
         Dim data_index As Byte() = BitConverter.GetBytes(index)
         Dim date_parameter As Byte() = {0, 0, 0, 0}
         Dim data1 As Byte() = data_index.Concat(date_parameter).ToArray()
         _busCan.EnviarMissatgeCan(MotorCANID, CType(CmdModes.SINGLE_PARAM_READ, UInteger), data1)
-    End Sub
+        SyncLock receivedMessages
+            While receivedMessages.Count > 0
+                Dim receivedMsg As PcanMessage = receivedMessages(0)
+                receivedMessages.RemoveAt(0)
+                Dim result As ParsedSingleParameter = BusCan.AnalitzarMissatgeLecturaParametreUnic(receivedMsg.Data, receivedMsg.ID)
+                Return $"{result.Index}: {result.Value}"
+            End While
+        End SyncLock
+        RemoveHandler Me.MessageReceived, Nothing
+        Return Nothing
+    End Function
 
     ''' <summary>
     ''' Asigna el modo pocision al motor
@@ -82,7 +110,7 @@ Friend Class MotorCyberGear
     ''' Asigna la velocidad objetivo
     ''' </summary>
     Public Sub EstablirVelocitat(value As Single) Implements IMotor.EstablirVelocitat
-        EscriureParametreUnic(CType(ParameterList.SpdRef, UInteger), value)
+        EscriureParametreUnic(CType(ParameterList.SpdRef, UInteger), Calculate.FToU(value, -30.0F, 30.0F))
     End Sub
 
 
@@ -124,6 +152,21 @@ Friend Class MotorCyberGear
         Dim data1 As Byte() = {1} 'Byte[0]=1
         _busCan.EnviarMissatgeCan(MotorCANID, CType(CmdModes.SET_MECHANICAL_ZERO, UInteger), data1)
     End Sub
+    ''' <summary>
+    ''' Establece el modo corriente en el motor
+    ''' </summary>
+    Public Sub EstablirModeCorrent() Implements IMotor.EstablirModeCorrent
+        EscriureParametreUnic(CType(ParameterList.RunMode, UInteger), RunModes.CURRENT_MODE)
+    End Sub
+    ''' <summary>
+    ''' Establece el comando de el modo corriente
+    ''' </summary>
+    Public Sub EstablirComandaCorrent(value As Single) Implements IMotor.EstablirComandaCorrent
+        EscriureParametreUnic(CType(ParameterList.IqRef, UInteger), value)
+    End Sub
+    ''' <summary>
+    ''' Establece el Id del dispositivo de la red CANbus
+    ''' </summary>
 
     Public Sub EstablirIDDispositiu(MasterCANID As UInteger, NEWCANID As UInteger) Implements IMotor.EstablirIDDispositiu
         Dim optionValue As UShort = NEWCANID << 8 Or MasterCANID
@@ -132,9 +175,15 @@ Friend Class MotorCyberGear
         _busCan.EnviarMissatgeCanPersonalitzat(arbitrationId, data)
     End Sub
 
+    ''' <summary>
+    ''' Establece el modo de control manual
+    ''' </summary>
     Public Sub EstablirModeControl() Implements IMotor.EstablirModeControl
         EscriureParametreUnic(CType(ParameterList.RunMode, UInteger), RunModes.CONTROL_MODE)
     End Sub
+    ''' <summary>
+    ''' Envia el comando de control manual
+    ''' </summary>
     Public Sub EnviarComandaControlMotor(torque As Single, target_angle As Single, target_velocity As Single, Kp As Single, Kd As Single) Implements IMotor.EnviarComandaControlMotor
         'Enviar instrucciones de control en modo de operacion.
         'Parametros:

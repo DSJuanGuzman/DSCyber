@@ -1,7 +1,7 @@
 ﻿Public Interface IMotor
     Sub EscriureParametreUnic(index As UInteger, value As Single)
     Sub EscriureParametreUnic(index As UInteger, value As Byte)
-    Sub LlegirParametreUnic(index As UInteger)
+    Function LlegirParametreUnic(index As UInteger) As String
     Sub DesactivarMotor()
     Sub ActivarMotor()
     Sub EstablirZeroMecanic()
@@ -12,5 +12,8 @@
     Sub EstablirPosicio(value As Single)
     Sub EstablirIDDispositiu(MasterCANID As UInteger, NEWCANID As UInteger)
     Sub EstablirModeControl()
+    Sub EstablirModeCorrent()
+    Sub EstablirComandaCorrent(value As Single)
+    Function RebreStatMotor() As MotorData
     Sub EnviarComandaControlMotor(torque As Single, target_angle As Single, target_velocity As Single, Kp As Single, Kd As Single)
 End Interface

@@ -14,12 +14,14 @@
         Public ReadOnly Property Position As Double
         Public ReadOnly Property Velocity As Double
         Public ReadOnly Property Torque As Double
+        Public ReadOnly Property Temp As Double
 
-        Public Sub New(motorCanId As Byte, position As Double, velocity As Double, torque As Double)
+        Public Sub New(motorCanId As Byte, position As Double, velocity As Double, torque As Double, tem As Double)
             Me.MotorCanId = motorCanId
             Me.Position = position
             Me.Velocity = velocity
             Me.Torque = torque
+            Me.Temp = tem
         End Sub
     End Structure
     Public Structure ParsedSingleParameter

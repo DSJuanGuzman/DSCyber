@@ -114,11 +114,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Dll100PortCyberGear\Dll100PortCyberGear.vbproj">
+    <ProjectReference Include="..\..\..\..\..\..\Git\DigitalSolutionsDLLS\Component100Puerto\Dll100PortCybergear\Dll100PortCyberGear.vbproj">
       <Project>{a7f60acc-154a-4d8a-9fb6-c43acb831d8d}</Project>
       <Name>Dll100PortCyberGear</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>
