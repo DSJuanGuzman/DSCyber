@@ -2,6 +2,8 @@
 Imports Peak.Can.Basic
 Imports System.Threading
 Imports Dll100PortCyberGear
+Imports Dll060CyberGear.Struct
+Imports Dll060CyberGear.nsConstants
 Imports CyberGearVb.nsConstants
 Imports CyberGearVb.Struct
 
@@ -34,6 +36,7 @@ Friend Class BusCan
             Console.WriteLine(errorText)
         Else
             Console.WriteLine($"El hardware representado por el canal {channel} se ha inicializado correctamente")
+            Console.ReadKey()
             Dim receiver As New PcanReceiver(channel, AddressOf HandleMessage)
             If receiver.Start() Then
                 Console.WriteLine("El Receptor ha iniciado, Si deseas detener el proceso de recepcion, por favor llama el metodo 'Receiver.Stop()'")
@@ -94,26 +97,25 @@ Friend Class BusCan
                                            End SyncLock
                                        End Sub
 
-        ' Enviar un mensaje de difusión para descubrir dispositivos
-        Dim arbitrationId As UInteger = 0 ' Mensaje de diagnóstico estándar
-        Dim data() As Byte = New Byte() {0} ' Solicitud de diagnóstico genérico
+        ' Enviar mensajes a todos los IDs posibles
+        For i As UInteger = 0 To 127
+            Dim arbitrationId As UInteger = (CmdModes.MOTOR_STOP << 24) Or (MasterCANID << 8) Or i
+            Dim data1 As Byte() = {0, 0, 0, 0, 0, 0, 0, 0}
+            ' Estructura de un mensaje CAN
+            Dim canMessage As New PcanMessage With {
+            .ID = arbitrationId,
+            .MsgType = MessageType.Extended,
+            .DLC = CByte(data1.Length),
+            .Data = data1
+        }
+            ' Escribir el mensaje
+            Dim writeStatus As PcanStatus = Api.Write(Me.channel, canMessage)
+            If writeStatus <> PcanStatus.OK Then
+                Debug.WriteLine($"Failed to send message to ID {arbitrationId}.")
+            End If
+        Next
 
-        Dim canMessage As New PcanMessage With {
-        .ID = arbitrationId,
-        .MsgType = MessageType.Extended,
-        .DLC = CByte(data.Length),
-        .Data = data
-    }
-
-        ' Escribir el mensaje de difusión
-        Dim writeStatus As PcanStatus = Api.Write(Me.channel, canMessage)
-        If writeStatus <> PcanStatus.OK Then
-            Debug.WriteLine("Failed to send the broadcast message.")
-            Return deviceIDs
-        End If
-
-        Debug.WriteLine("Broadcast message sent, waiting for responses...")
-        Console.WriteLine("Espere mientras se buscan los dipositivos disponibles en la red....")
+        Debug.WriteLine("Messages sent to all IDs, waiting for responses...")
 
         ' Esperar respuestas
         Dim endTime As DateTime = DateTime.Now.AddSeconds(5) ' Esperar por 5 segundos para respuestas
@@ -130,6 +132,7 @@ Friend Class BusCan
                 End While
             End SyncLock
         End While
+
         RemoveHandler Me.MessageReceived, Nothing
         Return deviceIDs
     End Function
