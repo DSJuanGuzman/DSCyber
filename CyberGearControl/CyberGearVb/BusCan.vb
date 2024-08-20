@@ -96,8 +96,8 @@ Friend Class BusCan
                                        End Sub
 
         ' Enviar mensajes a todos los IDs posibles
-        For i As UInteger = 0 To 127
-            Dim arbitrationId As UInteger = (CmdModes.MOTOR_STOP << 24) Or (MasterCANID << 8) Or i
+        For i As UInteger = 0 To 128
+            Dim arbitrationId As UInteger = (CmdModes.MOTOR_ENABLE << 24) Or (MasterCANID << 8) Or i
             Dim data1 As Byte() = {0, 0, 0, 0, 0, 0, 0, 0}
             ' Estructura de un mensaje CAN
             Dim canMessage As New PcanMessage With {

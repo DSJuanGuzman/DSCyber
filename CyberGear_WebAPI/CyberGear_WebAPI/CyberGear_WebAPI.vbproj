@@ -138,6 +138,7 @@
     <Compile Include="Interfaces\IConfigurationService.vb" />
     <Compile Include="Interfaces\IControlService.vb" />
     <Compile Include="LoggingMiddleware.vb" />
+    <Compile Include="Modelos\ComandoControlModel.vb" />
     <Compile Include="Module1.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">

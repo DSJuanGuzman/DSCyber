@@ -194,7 +194,7 @@ Class MainWindow
                Single.TryParse(Velocidad_Text.Text, Globalization.NumberStyles.Float, Globalization.CultureInfo.InvariantCulture, velocityValue) AndAlso
                Single.TryParse(Kp_Text.Text, Globalization.NumberStyles.Float, Globalization.CultureInfo.InvariantCulture, KpValue) AndAlso
                Single.TryParse(Kd_Text.Text, Globalization.NumberStyles.Float, Globalization.CultureInfo.InvariantCulture, KdValue) Then
-                    ComandoControl(torqueValue, targetValue, velocityValue, KpValue, KdValue)
+                    Await EnviarComandoControl(torqueValue, targetValue, velocityValue, KpValue, KdValue)
                 Else
                     Message_Log.Text = "Uno o más valores ingresados no son números válidos."
                 End If
@@ -249,17 +249,20 @@ Class MainWindow
         End Select
     End Sub
 
-    Private Async Sub ComandoControl(torque As Single, target As Single, velocity As Single, Kp As Single, Kd As Single)
-        ' Construir la cadena de consulta
-        Dim queryString As String = $"torque={torque}&target={target}&velocity={velocity}&Kp={Kp}&Kd={Kd}"
+    Private Async Function EnviarComandoControl(torque As Single, target As Single, velocity As Single, Kp As Single, Kd As Single) As Task
+        Dim modelo As New ComandoControlModel With {
+        .torque = torque,
+        .target = target,
+        .velocity = velocity,
+        .Kp = Kp,
+        .Kd = Kd
+    }
 
-        ' Crear la URL completa con la cadena de consulta
-        Dim requestUri As String = $"{BaseUri}/Motor/ComandoControl?{queryString}"
+        Dim json As String = Newtonsoft.Json.JsonConvert.SerializeObject(modelo)
+        Dim contenido As New StringContent(json, Encoding.UTF8, "application/json")
 
-        ' Realizar la solicitud POST
-        Dim response As HttpResponseMessage
         Try
-            response = Await client.PostAsync(requestUri, Nothing)
+            Dim response As HttpResponseMessage = Await client.PostAsync($"{BaseUri}/Motor/ComandoControl", contenido)
 
             If response.IsSuccessStatusCode Then
                 Message_Log.AppendText("Se ha enviado el comando")
@@ -272,7 +275,7 @@ Class MainWindow
             Message_Log.AppendText("Error: " & ex.Message)
             Message_Log.AppendText(Environment.NewLine)
         End Try
-    End Sub
+    End Function
     Private Async Sub Posicion(velocityValue As Single, targetValue As Single)
         Dim Responsev As HttpResponseMessage = Await client.PostAsync($"{BaseUri}/Motor//LimiteVelocidad/{velocityValue}", Nothing)
         Dim Response As HttpResponseMessage = Await client.PostAsync($"{BaseUri}/Motor/Posicion/{targetValue}", Nothing)

@@ -198,16 +198,16 @@ Friend Class MotorCyberGear
 
         'Generar los componenetes de la Id de arbitraje de 29 bits
         'uint cmd_mode = CmdModes.MOTOR_CONTROL;
-        Dim torque_mapped As UInteger = Calculate.FToU(torque, -12.0F, 12.0F) ' Float to Uint (Calculate.cs)
+        Dim torque_mapped As UInteger = (torque + 12) / 24 * 65535 'Calculate.FToU(torque, -12.0F, 12.0F) ' Float to Uint (Calculate.cs)
         Dim data2 As UInteger = torque_mapped
         ' Id de Arbitracion，
         Dim arbitrationId As UInteger = (CType(CmdModes.MOTOR_CONTROL, UInteger) << 24) Or (data2 << 8) Or MotorCANID 'Encabezado de la peticion
 
         ' GEnerar Datos de Area 1
-        Dim target_angle_mapped As UInteger = Calculate.FToU(target_angle, -4 * Math.PI, 4 * Math.PI) 'Angulo Objetivo
-        Dim target_velocity_mapped As UInteger = Calculate.FToU(target_velocity, -30.0F, 30.0F) 'Velocidad Objetivo
-        Dim Kp_mapped As UInteger = Calculate.FToU(Kp, 0.0F, 500.0F) 'Ganancia Proporcional
-        Dim Kd_mapped As UInteger = Calculate.FToU(Kd, 0.0F, 5.0F) 'Ganancia Diferencial
+        Dim target_angle_mapped As UInteger = (target_angle + 4 * Math.PI) / (8 * Math.PI) * 65535 'Calculate.FToU(target_angle, -4 * Math.PI, 4 * Math.PI) 'Angulo Objetivo
+        Dim target_velocity_mapped As UInteger = (target_velocity + 30) / 60 * 65535 'Calculate.FToU(target_velocity, -30.0F, 30.0F) 'Velocidad Objetivo
+        Dim Kp_mapped As UInteger = (Kp / 500) * 65535 'Calculate.FToU(Kp, 0.0F, 500.0F) 'Ganancia Proporcional
+        Dim Kd_mapped As UInteger = (Kd / 5) * 65535 'Calculate.FToU(Kd, 0.0F, 5.0F) 'Ganancia Diferencial
 
         'Datos a cuerpo de 8 bytes
         Dim data1 As Byte() = New Byte(7) {} 'Cuerpo de la peticion (Datos)

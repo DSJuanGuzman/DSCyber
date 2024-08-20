@@ -88,10 +88,11 @@ Public Class MotorController
 
     <HttpPost>
     <Route("api/Motor/ComandoControl")>
-    Public Function LimiteVelocidad(torque As Single, target As Single, velocity As Single, Kp As Single, Kd As Single) As IHttpActionResult
-        _controlService.EviarComandoControlMotor(torque, target, velocity, Kp, Kd)
+    Public Function ComandoControl(model As ComandoControlModel) As IHttpActionResult
+        _controlService.EviarComandoControlMotor(model.Torque, model.Target, model.Velocity, model.Kp, model.Kd)
         Return Ok()
     End Function
+
 
     <HttpPost>
     <Route("api/Motor/LeerParametro/{index}")>
