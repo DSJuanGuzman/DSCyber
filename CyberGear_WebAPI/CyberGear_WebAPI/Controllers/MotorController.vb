@@ -65,10 +65,10 @@ Public Class MotorController
         Return Ok()
     End Function
 
-    <HttpPost>
-    <Route("api/Motor/LimiteVelocidad/{value}")>
-    Public Function LimiteVelocidad(value As Single) As IHttpActionResult
-        _controlService.EstablecerLimiteVelocidad(value)
+    <HttpPut>
+    <Route("api/Motor/LimiteVelocidad/{valor}")>
+    Public Function LimiteVelocidad(valor As Single) As IHttpActionResult
+        _controlService.EstablecerLimiteVelocidad(valor)
         Return Ok()
     End Function
 
@@ -93,15 +93,14 @@ Public Class MotorController
         Return Ok()
     End Function
 
-
-    <HttpPost>
+    <HttpGet>
     <Route("api/Motor/LeerParametro/{index}")>
     Public Function LeerParametro(index As UInteger) As IHttpActionResult
         Return Ok(_controlService.LeerParametroUnico(index))
     End Function
 
     <HttpPost>
-    <Route("api/Motor/EscribirParametro")>
+    <Route("api/Motor/EscribirParametro/{index}/{value}")>
     Public Function EscribirParametro(index As UInteger, value As Single) As IHttpActionResult
         _controlService.EscribirParametroUnico(index, value)
         Return Ok()

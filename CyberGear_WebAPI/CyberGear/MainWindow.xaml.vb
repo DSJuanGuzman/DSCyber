@@ -277,20 +277,32 @@ Class MainWindow
         End Try
     End Function
     Private Async Sub Posicion(velocityValue As Single, targetValue As Single)
-        Dim Responsev As HttpResponseMessage = Await client.PostAsync($"{BaseUri}/Motor//LimiteVelocidad/{velocityValue}", Nothing)
-        Dim Response As HttpResponseMessage = Await client.PostAsync($"{BaseUri}/Motor/Posicion/{targetValue}", Nothing)
+        ' Formatear valores float para asegurar que se envíen correctamente
+        Dim velocityValueFormatted As String = velocityValue.ToString(System.Globalization.CultureInfo.InvariantCulture)
+        Dim targetValueFormatted As String = targetValue.ToString(System.Globalization.CultureInfo.InvariantCulture)
+
+        Dim Responsev As HttpResponseMessage = Await client.PutAsync($"{BaseUri}/Motor/LimiteVelocidad/{velocityValueFormatted}", Nothing)
+        Dim Response As HttpResponseMessage = Await client.PostAsync($"{BaseUri}/Motor/Posicion/{targetValueFormatted}", Nothing)
+
         If Response.IsSuccessStatusCode And Responsev.IsSuccessStatusCode Then
             Message_Log.AppendText("Se ha enviado el comando")
             Message_Log.AppendText(Environment.NewLine)
         Else
             Message_Log.AppendText("Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase)
             Message_Log.AppendText(Environment.NewLine)
-            Message_Log.AppendText("Error en la solicitud: " & Responsev.StatusCode & " " & Response.ReasonPhrase)
+            Message_Log.AppendText("Error en la solicitud: " & Responsev.StatusCode & " " & Responsev.ReasonPhrase)
             Message_Log.AppendText(Environment.NewLine)
         End If
     End Sub
+
     Private Async Sub Velocidad(value As Single)
-        Dim Response As HttpResponseMessage = Await client.PostAsync($"{BaseUri}/Motor/Velocidad/{value}", Nothing)
+        ' Formatear el valor para asegurar que se envíe correctamente en la URL
+        Dim valueFormatted As String = value.ToString(System.Globalization.CultureInfo.InvariantCulture)
+
+        ' Realizar la solicitud HTTP POST con el valor formateado
+        Dim Response As HttpResponseMessage = Await client.PostAsync($"{BaseUri}/Motor/Velocidad/{valueFormatted}", Nothing)
+
+        ' Verificar el resultado de la solicitud
         If Response.IsSuccessStatusCode Then
             Message_Log.AppendText("Se ha enviado el comando")
             Message_Log.AppendText(Environment.NewLine)
@@ -299,8 +311,15 @@ Class MainWindow
             Message_Log.AppendText(Environment.NewLine)
         End If
     End Sub
+
     Private Async Sub Corriente(value As Single)
-        Dim Response As HttpResponseMessage = Await client.PostAsync($"{BaseUri}/Motor/Corriente/{value}", Nothing)
+        ' Formatear el valor para asegurar que se envíe correctamente en la URL
+        Dim valueFormatted As String = value.ToString(System.Globalization.CultureInfo.InvariantCulture)
+
+        ' Realizar la solicitud HTTP POST con el valor formateado
+        Dim Response As HttpResponseMessage = Await client.PostAsync($"{BaseUri}/Motor/Corriente/{valueFormatted}", Nothing)
+
+        ' Verificar el resultado de la solicitud
         If Response.IsSuccessStatusCode Then
             Message_Log.AppendText("Se ha enviado el comando")
             Message_Log.AppendText(Environment.NewLine)
@@ -309,20 +328,18 @@ Class MainWindow
             Message_Log.AppendText(Environment.NewLine)
         End If
     End Sub
+
     Private Async Sub EscribirParametro(index As UInteger, value As Single)
-        ' Crear la cadena de consulta
-        Dim content As New FormUrlEncodedContent(New Dictionary(Of String, String) From {
-        {"index", index.ToString()},
-        {"value", value.ToString()}
-    })
+        ' Formatear la URL con los parámetros
+        Dim url As String = $"{BaseUri}/Motor/EscribirParametro/{index}/{value.ToString(System.Globalization.CultureInfo.InvariantCulture)}"
 
         ' Enviar la solicitud POST
         Dim response As HttpResponseMessage
         Try
-            response = Await client.PostAsync($"{BaseUri}/Motor/EscribirParametro", content)
+            response = Await client.PostAsync(url, Nothing)
 
             If response.IsSuccessStatusCode Then
-                Message_Log.AppendText($"Se ha escrito sobre el parametro {index}")
+                Message_Log.AppendText($"Se ha escrito sobre el parámetro {index}")
                 Message_Log.AppendText(Environment.NewLine)
             Else
                 Message_Log.AppendText("Error en la solicitud: " & response.StatusCode & " " & response.ReasonPhrase)
@@ -333,6 +350,7 @@ Class MainWindow
             Message_Log.AppendText(Environment.NewLine)
         End Try
     End Sub
+
     Private Async Sub LeerParametro(index As UInteger)
         Dim respuesta As HttpResponseMessage = Await client.GetAsync($"{BaseUri}/Motor/LeerParametro/{index}")
         If respuesta.IsSuccessStatusCode Then
