@@ -9,6 +9,7 @@ Class MainWindow
     Private Property IsServiceInitialized As Boolean = False
     Private Property IsMotorInitialized As Boolean = False
     Private Property CurrentMode As String = String.Empty
+    Public Property _SecMotors As New List(Of Integer)
     Public Sub New()
         InitializeComponent()
         ' Selecciona la primera opción por defecto
@@ -49,6 +50,26 @@ Class MainWindow
             End If
         End If
         MessageBox.Show("El serivico ya se encuentra inicializado")
+    End Sub
+
+    Private Async Sub Buscar(sender As Object, e As RoutedEventArgs)
+        Dim Response As HttpResponseMessage = Await client.GetAsync($"{BaseUri}/Motor/Buscar")
+        If Response.IsSuccessStatusCode Then
+            Dim jsonString As String = Await Response.Content.ReadAsStringAsync()
+
+            ' Deserializar la respuesta en una lista de enteros
+            Dim motores As List(Of Integer) = JsonConvert.DeserializeObject(Of List(Of Integer))(jsonString)
+
+            ' Verificar si la lista no está vacía y asignarla a _SecMotors
+            If motores IsNot Nothing AndAlso motores.Any() Then
+                _SecMotors = motores
+                ListaMotores.ItemsSource = _SecMotors
+            Else
+                Message_Log.Text = "No se encontraron motores."
+            End If
+        Else
+            Message_Log.Text = "Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase
+        End If
     End Sub
     Private Async Sub PuntoZero(sender As Object, e As RoutedEventArgs)
         CurrentMode = String.Empty
@@ -159,23 +180,34 @@ Class MainWindow
     End Sub
 
     Private Sub EnviarComando_Button(sender As Object, e As RoutedEventArgs)
-        Dim selectedOption As String = CurrentMode
-        If selectedOption IsNot String.Empty Then
-            Select Case selectedOption
-                Case "Modo Control" And MainTabControl.SelectedIndex = 0 And Torque_Text.Text, Posicion_Text.Text, Velocidad_Text.Text, Kp_Text.Text, Kd_Text.Text IsNot String.Empty
-                    ComandoControl(Torque_Text.Text, Posicion_Text.Text, Velocidad_Text.Text, Kp_Text.Text, Kd_Text.Text)
-                Case "Modo Posicion" And MainTabControl.SelectedIndex = 1 And LimitVelocity_Text.Text, Position_Text.Text IsNot String.Empty
-                    Posicion(LimitVelocity_Text.Text, Position_Text.Text)
-                Case "Modo Velocidad" And MainTabControl.SelectedIndex = 2 And Speedref_Text.Text IsNot String.Empty
-                    Velocidad(Speedref_Text.Text)
-                Case "Modo Corriente" And MainTabControl.SelectedIndex = 3 And Corriente_Text.Text IsNot String.Empty
-                    Corriente(Corriente_Text.Text)
-                Case "Escribir Parametro" And MainTabControl.SelectedIndex = 4 And Index_Text.Text, Value_Text.Text IsNot String.Empty
-                    EscribirParametro(Index_Text.Text, Value_Text.Text)
-                Case "Leer Parametro" And MainTabControl.SelectedIndex = 5 And ReadIndex_Text.Text IsNot String.Empty
-                    LeerParametro(ReadIndex_Text.Text)
-            End Select
-        End If
+        Dim selectedOption As Integer = MainTabControl.SelectedIndex
+        Select Case selectedOption
+            Case 0 'And MainTabControl.SelectedIndex = 0 And Torque_Text.Text, Posicion_Text.Text, Velocidad_Text.Text, Kp_Text.Text, Kd_Text.Text IsNot String.Empty
+                ComandoControl(Torque_Text.Text, Posicion_Text.Text, Velocidad_Text.Text, Kp_Text.Text, Kd_Text.Text)
+            Case 1 'And MainTabControl.SelectedIndex = 1 And LimitVelocity_Text.Text, Position_Text.Text IsNot String.Empty
+                Dim Limitspd As Single
+                Dim PositionValue As Single
+                If Single.TryParse(LimitVelocity_Text.Text, Limitspd) And Single.TryParse(Position_Text.Text, PositionValue) Then
+                    Posicion(Limitspd, PositionValue)
+                Else
+                    Message_Log.Text = "El valor ingresado no es un número válido."
+                End If
+
+            Case 2 'And MainTabControl.SelectedIndex = 2 And Speedref_Text.Text IsNot String.Empty
+                Dim velocidadValue As Single
+                If Single.TryParse(Speedref_Text.Text, velocidadValue) Then
+                    Velocidad(velocidadValue)
+                Else
+                    Message_Log.Text = "El valor ingresado no es un número válido."
+                End If
+
+            Case 3 'And MainTabControl.SelectedIndex = 3 And Corriente_Text.Text IsNot String.Empty
+                Corriente(Corriente_Text.Text)
+            Case 4 'And MainTabControl.SelectedIndex = 4 And Index_Text.Text, Value_Text.Text IsNot String.Empty
+                EscribirParametro(Index_Text.Text, Value_Text.Text)
+            Case 5 'And MainTabControl.SelectedIndex = 5 And ReadIndex_Text.Text IsNot String.Empty
+                LeerParametro(ReadIndex_Text.Text)
+        End Select
 
     End Sub
     Private Async Sub ComandoControl(torque As Single, target As Single, velocity As Single, Kp As Single, Kd As Single)

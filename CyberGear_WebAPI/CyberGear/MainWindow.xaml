@@ -3,14 +3,19 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CyberGear"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <TabControl x:Name="Main_Tab_View">
             <!-- Primera Sección -->
             <TabItem x:Name="Configuracion_Tab" Header="Configuracion">
-                <Grid>
-                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="center" >
+                <Grid Margin="80,20,80,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" MinWidth="246"/>
+                        <ColumnDefinition Width="*" MinWidth="221.25"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel HorizontalAlignment="Left" VerticalAlignment="Center" Height="268" Width="216" Margin="30,0,0,0">
                         <Label Content="CyberGear" HorizontalContentAlignment="Center" VerticalContentAlignment="center" FontFamily="Cascadia Mono SemiBold" FontSize="36" FontWeight="Bold"/>
                         <Label Content="Simple Control Interface" HorizontalContentAlignment="Center" VerticalContentAlignment="center" FontFamily="Bahnschrift Light" FontSize="18"/>
                         <Button x:Name="Iniciar_Servicio_Button" Content="Iniciar Servicio" Width="200" Height="30" Margin="8" Click="IniciarServicio"/>
@@ -22,10 +27,41 @@
                             <Button x:Name="IniciarMotor_Button" Grid.Column="0"  Content="Iniciar Motor" Width="142" Height="30" Margin="8" IsEnabled="False" Click="ActivarMotor_Button"/>
                             <TextBox x:Name="ID_TextBox" Grid.Column="1" TextWrapping="Wrap" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Text="" Height="30" Width="50"/>
                         </Grid>
-                        <Button x:Name="Desactivar_Motor_Button" Content="Desactivar Motor" Width="200" Height="30" Margin="8" Click="IniciarServicio" IsEnabled="False"/>
+                        <Button x:Name="Desactivar_Motor_Button" Content="Desactivar Motor" Width="200" Height="30" Margin="8" Click="DesactivarMotor_Button" IsEnabled="False"/>
                         <Button x:Name="Detener_Button" Content="Detener Servicio" Width="200" Height="30" Margin="8" IsEnabled="False" Click="DetenerServicio" />
-                        
+
                     </StackPanel>
+                    <StackPanel Grid.Column="1" Margin="40,40,40,40">
+                        <Label Content="Motores Disponibles:" FontFamily="Bahnschrift SemiBold" FontWeight="Bold" FontSize="14"/>
+                        <ListBox Height="204" ItemsSource="{Binding _SecMotors}" x:Name="ListaMotores">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="5">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <!-- Título del motor -->
+                                        <TextBlock Grid.Row="0" Text="L91 Motor" FontFamily="Bahnschrift SemiBold" FontSize="12"/>
+
+                                        <!-- ID del motor -->
+                                        <TextBlock Grid.Row="1">
+                                            <TextBlock.Text>
+                                                <MultiBinding StringFormat="Motor_ID: {0}">
+                                                    <Binding />
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <Button Content="Buscar" Height="24" Click="Buscar"/>
+
+                    </StackPanel>
+
+
                 </Grid>
             </TabItem>
 
@@ -48,7 +84,6 @@
                     </ComboBox>
                     <Button HorizontalAlignment="Right" Content="Establecer" Width="100" Height="25" Margin="10" Click="EstablecerModo"/>
                     <Button HorizontalAlignment="Right" Content="Zero" Width="100" Height="25" Margin="10,0,150,0" Click="PuntoZero"/>
-
                     <!-- TabControl para las secciones -->
                     <TabControl Grid.Row="1" x:Name="MainTabControl">
                         <TabItem Header="Modo Control">
@@ -81,61 +116,61 @@
 
                         <TabItem Header="Modo Posicion">
                             <ContentControl x:Name="ContentControl2">
-                            <Grid  Width="380" HorizontalAlignment="Left" Margin="15,40,15,15">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="auto"/>
-                                    <ColumnDefinition Width="auto"/>
-                                </Grid.ColumnDefinitions>
+                                <Grid  Width="380" HorizontalAlignment="Left" Margin="15,40,15,15">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="auto"/>
+                                        <ColumnDefinition Width="auto"/>
+                                    </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0" MinWidth="190">
                                         <TextBlock TextWrapping="Wrap" Text="Posicion (Rad):" FontSize="14" HorizontalAlignment="Center" Margin="10"/>
                                         <TextBlock TextWrapping="Wrap" Text="Velocidad Limite(Rad/s):" FontSize="14" HorizontalAlignment="Center" Margin="10"/>
                                     </StackPanel>
-                                <StackPanel Grid.Column="1">
-                                    <TextBox x:Name="Position_Text" TextWrapping="Wrap" Text="" Width="120" Height="25" Margin="7" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" FontSize="14"/>
+                                    <StackPanel Grid.Column="1">
+                                        <TextBox x:Name="Position_Text" TextWrapping="Wrap" Text="" Width="120" Height="25" Margin="7" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" FontSize="14"/>
                                         <TextBox x:Name="LimitVelocity_Text" TextWrapping="Wrap" Text="" Width="120" Height="25" Margin="7" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" FontSize="14"/>
                                         <Button x:Name="Enviar1" Content="Enviar" Margin="7,20,7,0" Height="30" Click="EnviarComando_Button"/>
 
-                                </StackPanel>
-                            </Grid>
-                                </ContentControl>
+                                    </StackPanel>
+                                </Grid>
+                            </ContentControl>
                         </TabItem>
 
                         <TabItem Header="Modo Velocidad">
                             <ContentControl x:Name="ContentControl3">
-                            <Grid  Width="380" HorizontalAlignment="Left" Margin="15,40,15,15">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="auto"/>
-                                    <ColumnDefinition Width="auto"/>
-                                </Grid.ColumnDefinitions>
+                                <Grid  Width="380" HorizontalAlignment="Left" Margin="15,40,15,15">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="auto"/>
+                                        <ColumnDefinition Width="auto"/>
+                                    </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0" MinWidth="190">
                                         <TextBlock TextWrapping="Wrap" Text="Velocidad Objetivo (Rad/s):" FontSize="14" HorizontalAlignment="Center" Margin="10"/>
-                                </StackPanel>
-                                <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" HorizontalAlignment="Center">
                                         <TextBox x:Name="Speedref_Text" TextWrapping="Wrap" Text="" Width="120" Height="25" Margin="7" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" FontSize="14"/>
                                         <Button x:Name="Enviar2" Content="Enviar" Margin="7,20,7,0" Height="30" Click="EnviarComando_Button"/>
 
-                                </StackPanel>
-                            </Grid>
+                                    </StackPanel>
+                                </Grid>
                             </ContentControl>
 
                         </TabItem>
 
                         <TabItem Header="Modo Corriente">
                             <ContentControl x:Name="ContentControl4">
-                            <Grid  Width="380" HorizontalAlignment="Left" Margin="15,40,15,15">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="auto"/>
-                                    <ColumnDefinition Width="auto"/>
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0" MinWidth="190">
-                                    <TextBlock TextWrapping="Wrap" Text="Corriente Objetivo (A):" FontSize="14" HorizontalAlignment="Center" Margin="10"/>
-                                </StackPanel>
-                                <StackPanel Grid.Column="1">
-                                    <TextBox x:Name="Corriente_Text" TextWrapping="Wrap" Text="" Width="120" Height="25" Margin="7" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" FontSize="14"/>
-                                    <Button x:Name="Enviar3" Content="Enviar" Margin="7,20,7,0" Height="30" Click="EnviarComando_Button"/>
+                                <Grid  Width="380" HorizontalAlignment="Left" Margin="15,40,15,15">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="auto"/>
+                                        <ColumnDefinition Width="auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" MinWidth="190">
+                                        <TextBlock TextWrapping="Wrap" Text="Corriente Objetivo (A):" FontSize="14" HorizontalAlignment="Center" Margin="10"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1">
+                                        <TextBox x:Name="Corriente_Text" TextWrapping="Wrap" Text="" Width="120" Height="25" Margin="7" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" FontSize="14"/>
+                                        <Button x:Name="Enviar3" Content="Enviar" Margin="7,20,7,0" Height="30" Click="EnviarComando_Button"/>
 
-                                </StackPanel>
-                            </Grid>
+                                    </StackPanel>
+                                </Grid>
                             </ContentControl>
                         </TabItem>
                         <TabItem Header="Escribir Parametro">
@@ -179,12 +214,12 @@
                             </ContentControl>
                         </TabItem>
                     </TabControl>
-                <Grid Grid.Row="2" Margin="3">
+                    <Grid Grid.Row="2" Margin="3">
                         <TextBox TextWrapping="Wrap" Text="Message Log:" IsReadOnly="True" x:Name="Message_Log"/>
 
                     </Grid>
 
-    </Grid>
+                </Grid>
             </TabItem>
         </TabControl>
     </Grid>

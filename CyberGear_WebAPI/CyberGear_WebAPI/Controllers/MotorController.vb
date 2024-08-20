@@ -18,6 +18,12 @@ Public Class MotorController
         Return Ok()
     End Function
 
+    <HttpGet>
+    <Route("api/Motor/Buscar")>
+    Public Function Buscar() As IHttpActionResult
+        Return Ok(_controlService.BuscarMotores())
+    End Function
+
     <HttpPost>
     <Route("api/Motor/Activar/{ID}")>
     Public Function Activar(ID As Integer) As IHttpActionResult

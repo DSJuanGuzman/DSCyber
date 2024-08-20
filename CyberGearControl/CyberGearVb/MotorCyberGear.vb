@@ -1,9 +1,10 @@
 ﻿
 Imports Dll100PortCyberGear
+Imports Dll060CyberGear.nsConstants
+Imports Dll060CyberGear.Struct
 Imports Peak.Can.Basic
 Imports CyberGearVb.nsConstants
 Imports CyberGearVb.Struct
-
 
 ''' <summary>
 ''' Gestion de comunicacion por medio de Bus CAN con el motor (CyberGear)
@@ -15,13 +16,17 @@ Friend Class MotorCyberGear
     Implements IMotor
 
     Private ReadOnly _busCan As IBusCan
-    Private ReadOnly MotorCANID As UInteger
+    Public ReadOnly MotorCANID As UInteger
     Public Event MessageReceived As Action(Of PcanMessage)
 
     Public Sub New(busCan As IBusCan, motorCANID As UInteger)
         _busCan = busCan
         Me.MotorCANID = motorCANID
     End Sub
+
+    Public Function SenId() As Integer Implements IMotor.SenID
+        Return MotorCANID
+    End Function
 
     ''' <summary>
     ''' asignacion de un unico valor en el indice ya especificado

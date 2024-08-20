@@ -2,6 +2,7 @@
     Sub EscriureParametreUnic(index As UInteger, value As Single)
     Sub EscriureParametreUnic(index As UInteger, value As Byte)
     Function LlegirParametreUnic(index As UInteger) As String
+    Function SenID() As Integer
     Sub DesactivarMotor()
     Sub ActivarMotor()
     Sub EstablirZeroMecanic()

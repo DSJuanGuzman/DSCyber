@@ -16,4 +16,6 @@ Public Interface IControlService
     Sub EstablecerComandoCorriente(value As Single)
     Function ObtenerEstado() As MotorData
     Sub Desactivar()
+    Sub ActivarMotor(id As Integer)
+    Function BuscarMotores() As List(Of Integer)
 End Interface

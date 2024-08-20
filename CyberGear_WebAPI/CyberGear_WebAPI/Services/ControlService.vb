@@ -6,6 +6,7 @@ Public Class ControlService
     Implements IControlService
     Private ReadOnly _configurationService As IConfigurationService
     Private Property _Motor As IMotor
+    Private Property _Motores As List(Of IMotor)
 
     Public Sub New(configurationService As IConfigurationService)
         _configurationService = configurationService
@@ -15,6 +16,27 @@ Public Class ControlService
         _Motor = _configurationService.IniciarMotor(id)
         _Motor.ActivarMotor()
     End Sub
+
+    Public Sub ActivarMotor(id As Integer) Implements IControlService.ActivarMotor
+        Dim motorSeleccionado = _Motores.FirstOrDefault(Function(m) m.SenID = id)
+        If motorSeleccionado IsNot Nothing Then
+            _Motor = motorSeleccionado
+            Console.WriteLine("Motor seleccionado: " + id.ToString())
+            _Motor.ActivarMotor()
+        Else
+            Console.WriteLine("Motor con ID " + id.ToString() + " no encontrado.")
+        End If
+    End Sub
+
+    Public Function BuscarMotores() As List(Of Integer) Implements IControlService.BuscarMotores
+        _Motores = _configurationService.BuscarMotores()
+        Dim MotoresDisponibles As New List(Of Integer)
+        For Each motor In _Motores
+            Console.WriteLine(motor.SenID)
+            MotoresDisponibles.Add(motor.SenID)
+        Next
+        Return MotoresDisponibles
+    End Function
     Public Sub EstablecerCeroMecanico() Implements IControlService.EstablecerCeroMecanico
         _Motor.EstablirZeroMecanic()
         Console.WriteLine("Cero Mecanico Establecido")

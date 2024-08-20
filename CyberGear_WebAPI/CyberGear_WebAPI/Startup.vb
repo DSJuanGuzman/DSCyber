@@ -16,7 +16,7 @@ Public Class Startup
         Dim container As IUnityContainer = New UnityContainer()
         'Registro de los servicios
         container.RegisterType(Of IConfigurationService, ConfigurationService)(New ContainerControlledLifetimeManager())
-        container.RegisterType(Of IControlService, ControlService)
+        container.RegisterType(Of IControlService, ControlService)(New ContainerControlledLifetimeManager())
         ' Establecer el solucionador de dependencias de Web API con Unity
         config.DependencyResolver = New UnityDependencyResolver(container)
         config.MapHttpAttributeRoutes()

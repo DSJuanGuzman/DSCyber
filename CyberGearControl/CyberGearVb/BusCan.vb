@@ -4,9 +4,8 @@ Imports System.Threading
 Imports Dll100PortCyberGear
 Imports Dll060CyberGear.Struct
 Imports Dll060CyberGear.nsConstants
-Imports CyberGearVb.nsConstants
 Imports CyberGearVb.Struct
-
+Imports CyberGearVb.nsConstants
 
 Friend Class BusCan
     Implements IBusCan
@@ -36,7 +35,6 @@ Friend Class BusCan
             Console.WriteLine(errorText)
         Else
             Console.WriteLine($"El hardware representado por el canal {channel} se ha inicializado correctamente")
-            Console.ReadKey()
             Dim receiver As New PcanReceiver(channel, AddressOf HandleMessage)
             If receiver.Start() Then
                 Console.WriteLine("El Receptor ha iniciado, Si deseas detener el proceso de recepcion, por favor llama el metodo 'Receiver.Stop()'")
@@ -137,7 +135,7 @@ Friend Class BusCan
         Return deviceIDs
     End Function
 
-    Public Function SendReceiveCanMessage(MotorCANID As UInteger, cmdMode As UInteger, data1 As Byte()) As CyberGearVb.Struct.CanMessageResult
+    Public Function SendReceiveCanMessage(MotorCANID As UInteger, cmdMode As UInteger, data1 As Byte()) As CanMessageResult
         Dim arbitrationId As UInteger = (cmdMode << 24) Or (MasterCANID << 8) Or MotorCANID
         Dim canMessage As New PcanMessage With {
             .ID = arbitrationId,
