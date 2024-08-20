@@ -31,6 +31,20 @@ Friend Class Calculate
         ' Redondea y convierte a un entero.
         Return CUInt(Math.Round(mappedValue))
     End Function
+    Public Shared Function FloatToUInt(x As Single, x_min As Single, x_max As Single, bits As Integer) As Integer
+        Dim span As Single = x_max - x_min
+        Dim offset As Single = x_min
+
+        ' Limitar el valor de x dentro de los límites
+        If x > x_max Then
+            x = x_max
+        ElseIf x < x_min Then
+            x = x_min
+        End If
+
+        ' Convertir el valor flotante al valor entero deseado
+        Return CInt((x - offset) * ((1 << bits) - 1) / span)
+    End Function
 
     ' Mapea una entrada al rango de 0 a 65535, con 'x' como el valor de entrada.
     Public Shared Function UToF(x As Integer, xmin As Double, xmax As Double) As Double
