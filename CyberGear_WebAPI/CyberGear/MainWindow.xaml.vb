@@ -307,20 +307,28 @@ Class MainWindow
         End If
     End Sub
     Private Async Sub EscribirParametro(index As UInteger, value As Single)
-        Dim datos As New With {
-            index,
-            value
-        }
-        Dim json As String = Newtonsoft.Json.JsonConvert.SerializeObject(datos)
-        Dim contenido As New StringContent(json, Encoding.UTF8, "application/json")
-        Dim Response As HttpResponseMessage = Await client.PostAsync($"{BaseUri}/Motor/EscribirParametro", contenido)
-        If Response.IsSuccessStatusCode Then
-            Message_Log.AppendText($"Se ha escrito sobre el parametro {index}")
+        ' Crear la cadena de consulta
+        Dim content As New FormUrlEncodedContent(New Dictionary(Of String, String) From {
+        {"index", index.ToString()},
+        {"value", value.ToString()}
+    })
+
+        ' Enviar la solicitud POST
+        Dim response As HttpResponseMessage
+        Try
+            response = Await client.PostAsync($"{BaseUri}/Motor/EscribirParametro", content)
+
+            If response.IsSuccessStatusCode Then
+                Message_Log.AppendText($"Se ha escrito sobre el parametro {index}")
+                Message_Log.AppendText(Environment.NewLine)
+            Else
+                Message_Log.AppendText("Error en la solicitud: " & response.StatusCode & " " & response.ReasonPhrase)
+                Message_Log.AppendText(Environment.NewLine)
+            End If
+        Catch ex As Exception
+            Message_Log.AppendText("Error: " & ex.Message)
             Message_Log.AppendText(Environment.NewLine)
-        Else
-            Message_Log.AppendText("Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase)
-            Message_Log.AppendText(Environment.NewLine)
-        End If
+        End Try
     End Sub
     Private Async Sub LeerParametro(index As UInteger)
         Dim respuesta As HttpResponseMessage = Await client.GetAsync($"{BaseUri}/Motor/LeerParametro/{index}")
