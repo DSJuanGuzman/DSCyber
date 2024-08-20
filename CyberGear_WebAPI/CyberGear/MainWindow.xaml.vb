@@ -179,55 +179,99 @@ Class MainWindow
         End Select
     End Sub
 
-    Private Sub EnviarComando_Button(sender As Object, e As RoutedEventArgs)
+    Private Async Sub EnviarComando_Button(sender As Object, e As RoutedEventArgs)
         Dim selectedOption As Integer = MainTabControl.SelectedIndex
         Select Case selectedOption
-            Case 0 'And MainTabControl.SelectedIndex = 0 And Torque_Text.Text, Posicion_Text.Text, Velocidad_Text.Text, Kp_Text.Text, Kd_Text.Text IsNot String.Empty
-                ComandoControl(Torque_Text.Text, Posicion_Text.Text, Velocidad_Text.Text, Kp_Text.Text, Kd_Text.Text)
-            Case 1 'And MainTabControl.SelectedIndex = 1 And LimitVelocity_Text.Text, Position_Text.Text IsNot String.Empty
-                Dim Limitspd As Single
-                Dim PositionValue As Single
-                If Single.TryParse(LimitVelocity_Text.Text, Limitspd) And Single.TryParse(Position_Text.Text, PositionValue) Then
-                    Posicion(Limitspd, PositionValue)
+            Case 0
+                Dim torqueValue As Single
+                Dim targetValue As Single
+                Dim velocityValue As Single
+                Dim KpValue As Single
+                Dim KdValue As Single
+
+                If Single.TryParse(Torque_Text.Text, Globalization.NumberStyles.Float, Globalization.CultureInfo.InvariantCulture, torqueValue) AndAlso
+               Single.TryParse(Posicion_Text.Text, Globalization.NumberStyles.Float, Globalization.CultureInfo.InvariantCulture, targetValue) AndAlso
+               Single.TryParse(Velocidad_Text.Text, Globalization.NumberStyles.Float, Globalization.CultureInfo.InvariantCulture, velocityValue) AndAlso
+               Single.TryParse(Kp_Text.Text, Globalization.NumberStyles.Float, Globalization.CultureInfo.InvariantCulture, KpValue) AndAlso
+               Single.TryParse(Kd_Text.Text, Globalization.NumberStyles.Float, Globalization.CultureInfo.InvariantCulture, KdValue) Then
+                    ComandoControl(torqueValue, targetValue, velocityValue, KpValue, KdValue)
                 Else
-                    Message_Log.Text = "El valor ingresado no es un número válido."
+                    Message_Log.Text = "Uno o más valores ingresados no son números válidos."
                 End If
 
-            Case 2 'And MainTabControl.SelectedIndex = 2 And Speedref_Text.Text IsNot String.Empty
+            Case 1
+                Dim limitSpdValue As Single
+                Dim positionValue As Single
+
+                If Single.TryParse(LimitVelocity_Text.Text, Globalization.NumberStyles.Float, Globalization.CultureInfo.InvariantCulture, limitSpdValue) AndAlso
+               Single.TryParse(Position_Text.Text, Globalization.NumberStyles.Float, Globalization.CultureInfo.InvariantCulture, positionValue) Then
+                    Posicion(limitSpdValue, positionValue)
+                Else
+                    Message_Log.Text = "Uno o más valores ingresados no son números válidos."
+                End If
+
+            Case 2
                 Dim velocidadValue As Single
-                If Single.TryParse(Speedref_Text.Text, velocidadValue) Then
+
+                If Single.TryParse(Speedref_Text.Text, Globalization.NumberStyles.Float, Globalization.CultureInfo.InvariantCulture, velocidadValue) Then
                     Velocidad(velocidadValue)
                 Else
                     Message_Log.Text = "El valor ingresado no es un número válido."
                 End If
 
-            Case 3 'And MainTabControl.SelectedIndex = 3 And Corriente_Text.Text IsNot String.Empty
-                Corriente(Corriente_Text.Text)
-            Case 4 'And MainTabControl.SelectedIndex = 4 And Index_Text.Text, Value_Text.Text IsNot String.Empty
-                EscribirParametro(Index_Text.Text, Value_Text.Text)
-            Case 5 'And MainTabControl.SelectedIndex = 5 And ReadIndex_Text.Text IsNot String.Empty
-                LeerParametro(ReadIndex_Text.Text)
-        End Select
+            Case 3
+                Dim corrienteValue As Single
 
+                If Single.TryParse(Corriente_Text.Text, Globalization.NumberStyles.Float, Globalization.CultureInfo.InvariantCulture, corrienteValue) Then
+                    Corriente(corrienteValue)
+                Else
+                    Message_Log.Text = "El valor ingresado no es un número válido."
+                End If
+
+            Case 4
+                Dim indexValue As Integer
+                Dim value As String
+
+                If Integer.TryParse(Index_Text.Text, indexValue) AndAlso Not String.IsNullOrEmpty(Value_Text.Text) Then
+                    EscribirParametro(indexValue, Value_Text.Text)
+                Else
+                    Message_Log.Text = "El valor ingresado no es un número válido o el valor de texto está vacío."
+                End If
+
+            Case 5
+                Dim readIndexValue As Integer
+
+                If Integer.TryParse(ReadIndex_Text.Text, readIndexValue) Then
+                    LeerParametro(readIndexValue)
+                Else
+                    Message_Log.Text = "El valor ingresado no es un número válido."
+                End If
+        End Select
     End Sub
+
     Private Async Sub ComandoControl(torque As Single, target As Single, velocity As Single, Kp As Single, Kd As Single)
-        Dim datos As New With {
-            torque,
-            target,
-            velocity,
-            Kp,
-            Kd
-        }
-        Dim json As String = Newtonsoft.Json.JsonConvert.SerializeObject(datos)
-        Dim contenido As New StringContent(json, Encoding.UTF8, "application/json")
-        Dim Response As HttpResponseMessage = Await client.PostAsync($"{BaseUri}/Motor/ComandoControl", contenido)
-        If Response.IsSuccessStatusCode Then
-            Message_Log.AppendText("Se ha enviado el comando")
+        ' Construir la cadena de consulta
+        Dim queryString As String = $"torque={torque}&target={target}&velocity={velocity}&Kp={Kp}&Kd={Kd}"
+
+        ' Crear la URL completa con la cadena de consulta
+        Dim requestUri As String = $"{BaseUri}/Motor/ComandoControl?{queryString}"
+
+        ' Realizar la solicitud POST
+        Dim response As HttpResponseMessage
+        Try
+            response = Await client.PostAsync(requestUri, Nothing)
+
+            If response.IsSuccessStatusCode Then
+                Message_Log.AppendText("Se ha enviado el comando")
+                Message_Log.AppendText(Environment.NewLine)
+            Else
+                Message_Log.AppendText("Error en la solicitud: " & response.StatusCode & " " & response.ReasonPhrase)
+                Message_Log.AppendText(Environment.NewLine)
+            End If
+        Catch ex As Exception
+            Message_Log.AppendText("Error: " & ex.Message)
             Message_Log.AppendText(Environment.NewLine)
-        Else
-            Message_Log.AppendText("Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase)
-            Message_Log.AppendText(Environment.NewLine)
-        End If
+        End Try
     End Sub
     Private Async Sub Posicion(velocityValue As Single, targetValue As Single)
         Dim Responsev As HttpResponseMessage = Await client.PostAsync($"{BaseUri}/Motor//LimiteVelocidad/{velocityValue}", Nothing)
