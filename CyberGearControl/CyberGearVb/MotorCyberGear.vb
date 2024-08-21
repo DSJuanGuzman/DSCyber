@@ -197,7 +197,6 @@ Friend Class MotorCyberGear
         'Kd= Ganancia Derivada
 
         'Generar los componenetes de la Id de arbitraje de 29 bits
-        'uint cmd_mode = CmdModes.MOTOR_CONTROL;
         ''_________________________________________________________________________________
         Dim torque_mapped As Integer = Calculate.FloatToUInt(torque, -12.0F, 12.0F, 16)
         Dim position_mapped As Integer = Calculate.FloatToUInt(target_angle, -4 * Math.PI, 4 * Math.PI, 16)

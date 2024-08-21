@@ -37,7 +37,7 @@ Public Class ConfigurationService
                 Console.WriteLine("Dispositivos Disponibles:")
                 For i As Integer = 0 To SecDispositius.Count() - 1
                     Console.WriteLine($"{i} Motor CAN ID: {SecDispositius(i).senCodi}")
-                    Dim _Motor As IMotor = _busCan.fuxIMotor(SecDispositius(Console.ReadLine()))
+                    Dim _Motor As IMotor = _busCan.fuxIMotor(SecDispositius(i).senCodi)
                     If _Motor IsNot Nothing Then
                         Motores.Add(_Motor)
                     End If

@@ -32,7 +32,6 @@ Public Class ControlService
         _Motores = _configurationService.BuscarMotores()
         Dim MotoresDisponibles As New List(Of Integer)
         For Each motor In _Motores
-            Console.WriteLine(motor.SenID)
             MotoresDisponibles.Add(motor.SenID)
         Next
         Return MotoresDisponibles
