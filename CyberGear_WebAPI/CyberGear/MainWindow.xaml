@@ -43,7 +43,7 @@
                                         </Grid.RowDefinitions>
 
                                         <!-- Título del motor -->
-                                        <TextBlock Grid.Row="0" Text="L91 Motor" FontFamily="Bahnschrift SemiBold" FontSize="12"/>
+                                        <TextBlock Grid.Row="0" Text="L91 Motor" FontFamily="Bahnschrift SemiBold" FontSize="14"/>
 
                                         <!-- ID del motor -->
                                         <TextBlock Grid.Row="1">
@@ -57,11 +57,8 @@
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
-                        <Button Content="Buscar" Height="24" Click="Buscar"/>
-
+                        <Button x:Name="Buscar_Button" Content="Buscar" Height="24" Click="Buscar" IsEnabled="False"/>
                     </StackPanel>
-
-
                 </Grid>
             </TabItem>
 

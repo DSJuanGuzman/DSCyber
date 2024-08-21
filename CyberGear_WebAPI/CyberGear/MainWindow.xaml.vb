@@ -18,6 +18,7 @@ Class MainWindow
         IniciarMotor_Button.IsEnabled = False
         Detener_Button.IsEnabled = False
         Desactivar_Motor_Button.IsEnabled = False
+        Buscar_Button.IsEnabled = False
     End Sub
 
     Private Sub OptionsComboBox_SelectionChanged(sender As Object, e As SelectionChangedEventArgs)
@@ -44,6 +45,7 @@ Class MainWindow
                 IniciarMotor_Button.IsEnabled = True
                 Detener_Button.IsEnabled = True
                 Iniciar_Servicio_Button.IsEnabled = False
+                Buscar_Button.IsEnabled = True
             Else
                 Message_Log.AppendText("Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase)
                 Message_Log.AppendText(Environment.NewLine)
@@ -230,7 +232,6 @@ Class MainWindow
 
             Case 4
                 Dim indexValue As Integer
-                Dim value As String
 
                 If Integer.TryParse(Index_Text.Text, indexValue) AndAlso Not String.IsNullOrEmpty(Value_Text.Text) Then
                     EscribirParametro(indexValue, Value_Text.Text)
@@ -362,5 +363,9 @@ Class MainWindow
             Message_Log.AppendText("Error en la solicitud: " & respuesta.StatusCode & " " & respuesta.ReasonPhrase)
             Message_Log.AppendText(Environment.NewLine)
         End If
+    End Sub
+
+    Private Sub ListaMotores_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles ListaMotores.SelectionChanged
+        ID_TextBox.Text = ListaMotores.SelectedItem
     End Sub
 End Class

@@ -1,5 +1,4 @@
 ﻿Imports CyberGearVb
-Imports Dll060CyberGear
 Imports Dll100PortCyberGear
 
 Public Class ConfigurationService

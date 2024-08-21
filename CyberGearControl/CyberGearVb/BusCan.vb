@@ -2,8 +2,6 @@
 Imports Peak.Can.Basic
 Imports System.Threading
 Imports Dll100PortCyberGear
-Imports Dll060CyberGear.Struct
-Imports Dll060CyberGear.nsConstants
 Imports CyberGearVb.Struct
 Imports CyberGearVb.nsConstants
 
@@ -21,7 +19,7 @@ Friend Class BusCan
         Me.channel = InicializarCanal()
     End Sub
 
-    ''' <summary>
+    ''' <summary>  q2
     ''' Inicia el canal de comunicacion CANBus y la recepcion de mensajes
     ''' </summary>
     Private Function InicializarCanal() As PcanChannel
@@ -116,7 +114,7 @@ Friend Class BusCan
         Debug.WriteLine("Messages sent to all IDs, waiting for responses...")
 
         ' Esperar respuestas
-        Dim endTime As DateTime = DateTime.Now.AddSeconds(5) ' Esperar por 5 segundos para respuestas
+        Dim endTime As DateTime = DateTime.Now.AddSeconds(2) ' Esperar por 5 segundos para respuestas
         While DateTime.Now < endTime
             SyncLock receivedMessages
                 While receivedMessages.Count > 0
@@ -215,7 +213,6 @@ Friend Class BusCan
             .DLC = CByte(data1.Length),
             .Data = data1
         }
-
         ' Write the CAN message
         Dim writeStatus As PcanStatus = Api.Write(Me.channel, canMessage)
         If writeStatus <> PcanStatus.OK Then
