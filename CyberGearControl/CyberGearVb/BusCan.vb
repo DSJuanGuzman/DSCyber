@@ -210,7 +210,7 @@ Friend Class BusCan
         Dim canMessage As New PcanMessage With {
             .ID = arbitrationId,
             .MsgType = MessageType.Extended,
-            .DLC = CByte(data1.Length),
+            .DLC = Convert.ToByte(data1.Length),
             .Data = data1
         }
         ' Write the CAN message
@@ -259,35 +259,39 @@ Friend Class BusCan
         End If
         AnalitzarMissatgeLecturaParametreUnic(data, arbitration_id)
     End Function
+
     Public Shared Function AnalitzarMissatgeLecturaParametreUnic(data As Byte(), arbitration_id As UInteger) As ParsedSingleParameter
-        If data.Length >= 6 Then
-            Debug.WriteLine($"Received message with ID 0x{arbitration_id:X}")
+        If data.Length >= 8 Then
+            Debug.WriteLine($"Received parameter message with ID 0x{arbitration_id:X}")
 
-            ' Escribe el CAN ID del motor
-            Dim motor_can_id As Byte = CByte((arbitration_id >> 0) And &HFF)
+            ' Extraer el Motor CAN ID de los bits 23 ~ 8 del arbitration_id
+            Dim motor_can_id As Byte = CByte((arbitration_id >> 8) And &HFF)
 
-            'Analiza la posición, Velocidad y torque con chequeo de desbordamiento
-            Dim index As Integer
-            Dim value As Double
-            Dim indexHex As String
-            Try
-                index = (CInt(data(0)) >> 0)
-                indexHex = index.ToString("X4")
+            ' Extraer el índice del parámetro (Bytes 0 ~ 1) asegurando el orden correcto
+            Dim index As UInteger = BitConverter.ToUInt16(data, 0)
 
-                value = (CInt(data(4)) << 8) + data(7)
-            Catch ex As OverflowException
-                Debug.WriteLine($"Overflow error: {ex.Message}")
-                Return New ParsedSingleParameter(0, 0, 0)
-            End Try
+            ' Extraer el valor del parámetro basado en el índice
+            Dim parameter_value As Single
 
-            Debug.WriteLine($"Single parameter response frame: Motor CAN ID: {motor_can_id}, Index: 0x7-{indexHex}, value: {value} (See parameterlist to know the Units)")
+            If index = &H7005 Then
+                ' Leer el valor del byte 4 como un entero
+                Dim parameter_value_int As Byte = data(4)
+                parameter_value = CSng(parameter_value_int)
+            Else
+                ' Leer los bytes 4 a 7 como un flotante
+                parameter_value = BitConverter.ToSingle(data, 4)
+            End If
 
-            Return New ParsedSingleParameter(motor_can_id, index, value)
+            Debug.WriteLine($"Motor CAN ID: {motor_can_id}, Index: {index}, Parameter Value: {parameter_value}")
+
+            ' Devolver los valores analizados en un objeto ParsedSingleParameter
+            Return New ParsedSingleParameter(motor_can_id, index, parameter_value)
         Else
-            Debug.WriteLine("No message received within the timeout period or insufficient data length.")
+            Debug.WriteLine("Insufficient data length to analyze parameter message.")
             Return New ParsedSingleParameter(0, 0, 0)
         End If
     End Function
+
 
     ''' <summary>
     ''' Administra el evento cuando se reciben mensajes nuevos en el buffer

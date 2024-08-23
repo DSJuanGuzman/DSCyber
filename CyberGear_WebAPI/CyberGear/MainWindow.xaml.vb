@@ -231,21 +231,47 @@ Class MainWindow
                 End If
 
             Case 4
-                Dim indexValue As Integer
+                Dim indexValue As UInteger
+                Dim parameterValue As Single
 
-                If Integer.TryParse(Index_Text.Text, indexValue) AndAlso Not String.IsNullOrEmpty(Value_Text.Text) Then
-                    EscribirParametro(indexValue, Value_Text.Text)
+                ' Intentar convertir el texto del índice a un valor UInteger en base hexadecimal
+                If UInteger.TryParse(Index_Text.Text, Globalization.NumberStyles.HexNumber, Nothing, indexValue) Then
+
+                    ' Intentar convertir el valor de texto a un número de punto flotante usando la cultura invariante
+                    If Single.TryParse(Value_Text.Text, Globalization.NumberStyles.Float, Globalization.CultureInfo.InvariantCulture, parameterValue) Then
+
+                        ' Verificar si el valor es un entero sin parte decimal
+                        If Value_Text.Text.Contains(".") Then
+                            ' Llamar a la sobrecarga que recibe Single, ya que se introdujo un valor con parte decimal
+                            EscribirParametro(indexValue, parameterValue)
+                        ElseIf parameterValue >= Byte.MinValue AndAlso parameterValue <= Byte.MaxValue Then
+                            ' Convertir el valor a Byte y llamar a la sobrecarga que recibe Byte
+                            EscribirParametro(indexValue, CByte(parameterValue))
+                        Else
+                            ' Llamar a la sobrecarga que recibe Single si el valor no cabe en un Byte
+                            EscribirParametro(indexValue, parameterValue)
+                        End If
+
+                    Else
+                        ' Mostrar mensaje de error si la conversión del valor falla
+                        Message_Log.Text = "El valor ingresado no es un número de punto flotante válido."
+                    End If
+
                 Else
-                    Message_Log.Text = "El valor ingresado no es un número válido o el valor de texto está vacío."
+                    ' Mostrar mensaje de error si la conversión del índice falla
+                    Message_Log.Text = "El valor ingresado no es un número hexadecimal válido."
                 End If
 
             Case 5
-                Dim readIndexValue As Integer
+                Dim readIndexValue As UInteger
 
-                If Integer.TryParse(ReadIndex_Text.Text, readIndexValue) Then
+                ' Intentar convertir el texto del índice a un valor UInteger en base hexadecimal
+                If UInteger.TryParse(ReadIndex_Text.Text, Globalization.NumberStyles.HexNumber, Nothing, readIndexValue) Then
+                    ' Invocar la función LeerParametro con el índice convertido
                     LeerParametro(readIndexValue)
                 Else
-                    Message_Log.Text = "El valor ingresado no es un número válido."
+                    ' Mostrar mensaje de error si la conversión falla
+                    Message_Log.Text = "El valor ingresado no es un número hexadecimal válido."
                 End If
         End Select
     End Sub
@@ -331,8 +357,31 @@ Class MainWindow
     End Sub
 
     Private Async Sub EscribirParametro(index As UInteger, value As Single)
-        ' Formatear la URL con los parámetros
+        ' Formatear la URL con los parámetros usando CultureInfo.InvariantCulture para asegurar el punto decimal
         Dim url As String = $"{BaseUri}/Motor/EscribirParametro/{index}/{value.ToString(System.Globalization.CultureInfo.InvariantCulture)}"
+
+        ' Enviar la solicitud POST
+        Dim response As HttpResponseMessage
+        Try
+            response = Await client.PostAsync(url, Nothing)
+
+            If response.IsSuccessStatusCode Then
+                Message_Log.AppendText($"Se ha escrito sobre el parámetro {index}")
+                Message_Log.AppendText(Environment.NewLine)
+            Else
+                Message_Log.AppendText("Error en la solicitud: " & response.StatusCode & " " & response.ReasonPhrase)
+                Message_Log.AppendText(Environment.NewLine)
+            End If
+        Catch ex As Exception
+            Message_Log.AppendText("Error: " & ex.Message)
+            Message_Log.AppendText(Environment.NewLine)
+        End Try
+    End Sub
+
+
+    Private Async Sub EscribirParametro(index As UInteger, value As Byte)
+        ' Formatear la URL con los parámetros
+        Dim url As String = $"{BaseUri}/Motor/EscribirParametroByte/{index}/{value}"
 
         ' Enviar la solicitud POST
         Dim response As HttpResponseMessage

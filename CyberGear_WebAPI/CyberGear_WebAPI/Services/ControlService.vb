@@ -67,6 +67,10 @@ Public Class ControlService
         _Motor.EscriureParametreUnic(index, value)
         Console.WriteLine($"Asignando a parametro: {index}")
     End Sub
+    Public Sub EscribirParametroUnico(index As UInteger, value As Byte) Implements IControlService.EscribirParametroUnico
+        _Motor.EscriureParametreUnic(index, value)
+        Console.WriteLine($"Asignando a parametro: {index}")
+    End Sub
     Public Sub EstablecerModoVelocidad() Implements IControlService.EstablecerModoVelocidad
         _Motor.EstablirModeVelocitat()
         Console.WriteLine("Modo De Velocidad Establecido")

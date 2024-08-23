@@ -107,6 +107,13 @@ Public Class MotorController
     End Function
 
     <HttpPost>
+    <Route("api/Motor/EscribirParametroByte/{index}/{value}")>
+    Public Function EscribirParametro(index As UInteger, value As Byte) As IHttpActionResult
+        _controlService.EscribirParametroUnico(index, value)
+        Return Ok()
+    End Function
+
+    <HttpPost>
     <Route("api/Motor/ModoVelocidad")>
     Public Function ModoVelocidad() As IHttpActionResult
         _controlService.EstablecerModoVelocidad()

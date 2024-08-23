@@ -10,6 +10,7 @@ Public Interface IControlService
     Sub EviarComandoControlMotor(torque As Single, target As Single, velocity As Single, Kp As Single, Kd As Single)
     Function LeerParametroUnico(index As UInteger) As String
     Sub EscribirParametroUnico(index As UInteger, value As Single)
+    Sub EscribirParametroUnico(index As UInteger, value As Byte)
     Sub EstablecerModoVelocidad()
     Sub EstablecerVelocidad(value As Single)
     Sub EstablecerModoCorriente()

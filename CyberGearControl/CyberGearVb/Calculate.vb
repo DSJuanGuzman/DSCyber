@@ -10,8 +10,21 @@
 ''' Principalmente utilizada para manejar y transformar señales y datos en el sistema de control.
 ''' </remarks>
 Friend Class Calculate
-
-    ' Mapea una entrada al rango de 0 a 65535, con 'val' como el valor de entrada.
+    ''' <summary>
+    ''' Mapea una entrada al rango de 0 a 65535, con 'val' como el valor de entrada.
+    ''' Test Velocidad
+    ''' (0,-30,30) -> 65535-1/2 -> 32767
+    ''' (-30,-30,30) -> 0
+    ''' (30,-30,30) -> 65535
+    ''' Test Angulo
+    ''' (0,-12.566,12.566) -> 32767
+    ''' (-12.566,-12.566,12.566) -> 0
+    ''' (12.566,-12.566,12.566) -> 65535
+    ''' </summary>
+    ''' <param name="val"></param>
+    ''' <param name="xmin"></param>
+    ''' <param name="xmax"></param>
+    ''' <returns></returns>
     Public Shared Function FToU(val As Double, xmin As Double, xmax As Double) As UInteger
         ' Calcula la longitud del intervalo objetivo y el intervalo original.
         Dim targetRange As Double = xmax - xmin

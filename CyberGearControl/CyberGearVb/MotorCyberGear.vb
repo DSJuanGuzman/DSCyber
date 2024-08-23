@@ -97,21 +97,21 @@ Friend Class MotorCyberGear
     ''' Asigna el modo pocision al motor
     ''' </summary>
     Public Sub EstablirModePosicio() Implements IMotor.EstablirModePosicio
-        EscriureParametreUnic(CType(ParameterList.RunMode, UInteger), RunModes.POSITION_MODE)
+        EscriureParametreUnic(CType(ParameterList.RunMode, UInteger), Convert.ToByte(RunModes.POSITION_MODE))
     End Sub
 
     ''' <summary>
     ''' Asigna el modo de velocidad
     ''' </summary>
     Public Sub EstablirModeVelocitat() Implements IMotor.EstablirModeVelocitat
-        EscriureParametreUnic(CType(ParameterList.RunMode, UInteger), RunModes.SPEED_MODE)
+        EscriureParametreUnic(CType(ParameterList.RunMode, UInteger), Convert.ToByte(RunModes.SPEED_MODE))
     End Sub
 
     ''' <summary>
     ''' Asigna la velocidad objetivo
     ''' </summary>
     Public Sub EstablirVelocitat(value As Single) Implements IMotor.EstablirVelocitat
-        EscriureParametreUnic(CType(ParameterList.SpdRef, UInteger), Calculate.FToU(value, -30.0F, 30.0F))
+        EscriureParametreUnic(CType(ParameterList.SpdRef, UInteger), value)
     End Sub
 
 
@@ -157,7 +157,7 @@ Friend Class MotorCyberGear
     ''' Establece el modo corriente en el motor
     ''' </summary>
     Public Sub EstablirModeCorrent() Implements IMotor.EstablirModeCorrent
-        EscriureParametreUnic(CType(ParameterList.RunMode, UInteger), RunModes.CURRENT_MODE)
+        EscriureParametreUnic(CType(ParameterList.RunMode, UInteger), Convert.ToByte(RunModes.CURRENT_MODE))
     End Sub
     ''' <summary>
     ''' Establece el comando de el modo corriente
@@ -180,7 +180,7 @@ Friend Class MotorCyberGear
     ''' Establece el modo de control manual
     ''' </summary>
     Public Sub EstablirModeControl() Implements IMotor.EstablirModeControl
-        EscriureParametreUnic(CType(ParameterList.RunMode, UInteger), RunModes.CONTROL_MODE)
+        EscriureParametreUnic(CType(ParameterList.RunMode, UInteger), Convert.ToByte(RunModes.CONTROL_MODE))
     End Sub
     ''' <summary>
     ''' Envia el comando de control manual
@@ -196,49 +196,49 @@ Friend Class MotorCyberGear
 
         'Generar los componenetes de la Id de arbitraje de 29 bits
         ''_________________________________________________________________________________
-        Dim torque_mapped As Integer = Calculate.FloatToUInt(torque, -12.0F, 12.0F, 16)
-        Dim position_mapped As Integer = Calculate.FloatToUInt(target_angle, -4 * Math.PI, 4 * Math.PI, 16)
-        Dim velocity_mapped As Integer = Calculate.FloatToUInt(target_velocity, -30.0F, 30.0F, 16)
-        Dim Kp_mapped As Integer = Calculate.FloatToUInt(Kp, 0.0F, 500.0F, 16)
-        Dim Kd_mapped As Integer = Calculate.FloatToUInt(Kd, 0.0F, 5.0F, 16)
+        'Dim torque_mapped As Integer = Calculate.FloatToUInt(torque, -12.0F, 12.0F, 16)
+        'Dim position_mapped As Integer = Calculate.FloatToUInt(target_angle, -4 * Math.PI, 4 * Math.PI, 16)
+        'Dim velocity_mapped As Integer = Calculate.FloatToUInt(target_velocity, -30.0F, 30.0F, 16)
+        'Dim Kp_mapped As Integer = Calculate.FloatToUInt(Kp, 0.0F, 500.0F, 16)
+        'Dim Kd_mapped As Integer = Calculate.FloatToUInt(Kd, 0.0F, 5.0F, 16)
 
-        ' Generar el Arbitration ID (modo de comando y torque mapeado)
-        Dim arbitrationId As UInteger = (CType(CmdModes.MOTOR_CONTROL, UInteger) << 24) Or (CUInt(torque_mapped) << 8) Or CUInt(MotorCANID)
+        '' Generar el Arbitration ID (modo de comando y torque mapeado)
+        'Dim arbitrationId As UInteger = (CType(CmdModes.MOTOR_CONTROL, UInteger) << 24) Or (CUInt(torque_mapped) << 8) Or CUInt(MotorCANID)
 
-        ' Crear el array de datos con los parámetros mapeados
-        Dim data1 As Byte() = New Byte(7) {}
-        Array.Copy(BitConverter.GetBytes(CUShort(position_mapped)), 0, data1, 0, 2)
-        Array.Copy(BitConverter.GetBytes(CUShort(velocity_mapped)), 0, data1, 2, 2)
-        Array.Copy(BitConverter.GetBytes(CUShort(Kp_mapped)), 0, data1, 4, 2)
-        Array.Copy(BitConverter.GetBytes(CUShort(Kd_mapped)), 0, data1, 6, 2)
+        '' Crear el array de datos con los parámetros mapeados
+        'Dim data1 As Byte() = New Byte(7) {}
+        'Array.Copy(BitConverter.GetBytes(CUShort(position_mapped)), 0, data1, 0, 2)
+        'Array.Copy(BitConverter.GetBytes(CUShort(velocity_mapped)), 0, data1, 2, 2)
+        'Array.Copy(BitConverter.GetBytes(CUShort(Kp_mapped)), 0, data1, 4, 2)
+        'Array.Copy(BitConverter.GetBytes(CUShort(Kd_mapped)), 0, data1, 6, 2)
 
-        ' Enviar el mensaje CAN usando la biblioteca PeakCANBasic.Net
-        _busCan.EnviarMissatgeCanPersonalitzat(arbitrationId, data1)
+        '' Enviar el mensaje CAN usando la biblioteca PeakCANBasic.Net
+        '_busCan.EnviarMissatgeCanPersonalitzat(arbitrationId, data1)
         ''_________________________________________________________________________________
 
-        'Dim torque_mapped As UInteger = (torque + 12) / 24 * 65535 'Calculate.FToU(torque, -12.0F, 12.0F) ' Float to Uint (Calculate.cs)
-        'Dim data2 As UInteger = torque_mapped
-        '' Id de Arbitracion，
-        'Dim arbitrationId As UInteger = (CType(CmdModes.MOTOR_CONTROL, UInteger) << 24) Or (data2 << 8) Or MotorCANID 'Encabezado de la peticion
+        Dim torque_mapped As UInteger = Calculate.FloatToUInt(torque, -12.0F, 12.0F, 16) ' Float to Uint (Calculate.cs)
+        Dim data2 As UInteger = torque_mapped
+        ' Id de Arbitracion，
+        Dim arbitrationId As UInteger = (CType(CmdModes.MOTOR_CONTROL, UInteger) << 24) Or (data2 << 8) Or MotorCANID 'Encabezado de la peticion
 
-        '' GEnerar Datos de Area 1
-        'Dim target_angle_mapped As UInteger = (target_angle + 4 * Math.PI) / (8 * Math.PI) * 65535 'Calculate.FToU(target_angle, -4 * Math.PI, 4 * Math.PI) 'Angulo Objetivo
-        'Dim target_velocity_mapped As UInteger = (target_velocity + 30) / 60 * 65535 'Calculate.FToU(target_velocity, -30.0F, 30.0F) 'Velocidad Objetivo
-        'Dim Kp_mapped As UInteger = (Kp / 500) * 65535 'Calculate.FToU(Kp, 0.0F, 500.0F) 'Ganancia Proporcional
-        'Dim Kd_mapped As UInteger = (Kd / 5) * 65535 'Calculate.FToU(Kd, 0.0F, 5.0F) 'Ganancia Diferencial
+        ' GEnerar Datos de Area 1
+        Dim target_angle_mapped As UInteger = Calculate.FloatToUInt(target_angle, -4 * Math.PI, 4 * Math.PI, 16) 'Angulo Objetivo
+        Dim target_velocity_mapped As UInteger = Calculate.FloatToUInt(target_velocity, -30.0F, 30.0F, 16) 'Velocidad Objetivo
+        Dim Kp_mapped As UInteger = Calculate.FloatToUInt(Kp, 0.0F, 500.0F, 16) 'Ganancia Proporcional
+        Dim Kd_mapped As UInteger = Calculate.FloatToUInt(Kd, 0.0F, 5.0F, 16) 'Ganancia Diferencial
 
-        ''Datos a cuerpo de 8 bytes
-        'Dim data1 As Byte() = New Byte(7) {} 'Cuerpo de la peticion (Datos)
-        'Array.Copy(BitConverter.GetBytes(target_angle_mapped), 0, data1, 0, 2)
-        'Array.Copy(BitConverter.GetBytes(target_velocity_mapped), 0, data1, 2, 2)
-        'Array.Copy(BitConverter.GetBytes(Kp_mapped), 0, data1, 4, 2)
-        'Array.Copy(BitConverter.GetBytes(Kd_mapped), 0, data1, 6, 2) 'Cada parametro tiene su espacio en el array de bytes 
-        ''Byte 0 ~ 1: Target angle [0 ~ 65535] corresponding to (-4π ~ 4π)
-        ''Byte 2 ~3: Target angular velocity[0 ~65535] corresponds to(-30rad / s ~30rad / s)
-        ''Byte 4 ~5: Kp[0 ~65535] corresponds to(0.0 ~500.0)
-        ''Byte 6 ~7: Kd[0 ~65535] corresponds to(0.0 ~5.0)
+        'Datos a cuerpo de 8 bytes
+        Dim data1 As Byte() = New Byte(7) {} 'Cuerpo de la peticion (Datos)
+        Array.Copy(BitConverter.GetBytes(target_angle_mapped), 0, data1, 0, 2)
+        Array.Copy(BitConverter.GetBytes(target_velocity_mapped), 0, data1, 2, 2)
+        Array.Copy(BitConverter.GetBytes(Kp_mapped), 0, data1, 4, 2)
+        Array.Copy(BitConverter.GetBytes(Kd_mapped), 0, data1, 6, 2) 'Cada parametro tiene su espacio en el array de bytes 
+        'Byte 0 ~ 1: Target angle [0 ~ 65535] corresponding to (-4π ~ 4π)
+        'Byte 2 ~3: Target angular velocity[0 ~65535] corresponds to(-30rad / s ~30rad / s)
+        'Byte 4 ~5: Kp[0 ~65535] corresponds to(0.0 ~500.0)
+        'Byte 6 ~7: Kd[0 ~65535] corresponds to(0.0 ~5.0)
 
-        '_busCan.EnviarMissatgeCanPersonalitzat(arbitrationId, data1)
+        _busCan.EnviarMissatgeCanPersonalitzat(arbitrationId, data1)
     End Sub
 
 End Class
