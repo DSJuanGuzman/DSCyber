@@ -21,29 +21,30 @@ Friend Class Calculate
     ''' (-12.566,-12.566,12.566) -> 0
     ''' (12.566,-12.566,12.566) -> 65535
     ''' </summary>
-    ''' <param name="val"></param>
-    ''' <param name="xmin"></param>
-    ''' <param name="xmax"></param>
+    ''' <param name="value"></param>
+    ''' <param name="minValue"></param>
+    ''' <param name="maxValue"></param>
     ''' <returns></returns>
-    Public Shared Function FToU(val As Double, xmin As Double, xmax As Double) As UInteger
-        ' Calcula la longitud del intervalo objetivo y el intervalo original.
-        Dim targetRange As Double = xmax - xmin
-        Dim originalRange As Double = 65535 - 1 ' De 0 a 65535
-
-        ' Asegúrate de que el valor esté dentro del rango de xmin a xmax.
-        If val < xmin OrElse val > xmax Then
-            Throw New ArgumentOutOfRangeException(NameOf(val), $"El valor debe estar entre {xmin} y {xmax}.")
+    Public Shared Function FToU(value As Single, minValue As Single, maxValue As Single) As UInteger
+        ' Asegúrate de que el valor esté dentro del rango especificado
+        If value > maxValue Then
+            value = maxValue
+        ElseIf value < minValue Then
+            value = minValue
         End If
 
-        ' Calcula el factor de escala.
-        Dim scaleFactor As Double = originalRange / targetRange
+        ' Calcula el rango total y el offset
+        Dim span As Single = maxValue - minValue
+        Dim offset As Single = minValue
 
-        ' Aplica el mapeo.
-        Dim mappedValue As Double = (val - xmin) * scaleFactor
+        ' Escala el valor flotante al rango de 16 bits
+        Dim scaledValue As Single = (value - offset) * (65535 / span)
 
-        ' Redondea y convierte a un entero.
-        Return CUInt(Math.Round(mappedValue))
+        ' Convierte el valor escalado a un entero de 16 bits sin signo
+        Return CUInt(Math.Round(scaledValue))
     End Function
+
+
     Public Shared Function FloatToUInt(x As Single, x_min As Single, x_max As Single, bits As Integer) As Integer
         Dim span As Single = x_max - x_min
         Dim offset As Single = x_min

@@ -178,7 +178,7 @@ Friend Class BusCan
         Dim canMessage As New PcanMessage With {
             .ID = arbitrationId,
             .MsgType = MessageType.Extended,
-            .DLC = CByte(data1.Length),
+            .DLC = data1.Length,
             .Data = data1
         }
         Dim writeStatus As PcanStatus = Api.Write(Me.channel, canMessage)
