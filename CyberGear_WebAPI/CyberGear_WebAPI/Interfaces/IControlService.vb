@@ -14,6 +14,7 @@ Public Interface IControlService
     Sub EstablecerModoVelocidad()
     Sub EstablecerVelocidad(value As Single)
     Sub EstablecerModoCorriente()
+    Sub EscribirParametroTabla(index As UInteger, value As Single)
     Sub EstablecerComandoCorriente(value As Single)
     Function ObtenerEstado() As MotorData
     Sub Desactivar()

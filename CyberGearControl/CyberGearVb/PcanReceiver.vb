@@ -65,25 +65,20 @@ Public Class PcanReceiver
                 ' Lee y procesa todos los mensajes CAN en el buffer de recepcion.
                 While Api.Read(channel, canMessage, canTimestamp) = PcanStatus.OK
                     ' Procesa el mensaje recibido
-                    'Console.WriteLine($"Mensaje Recibido: ID=0x{canMessage.ID:X} Data= {BitConverter.ToString(canMessage.Data)}")
-                    'Console.WriteLine($"TimeStamp: {canTimestamp}")
-                    ' Parse the received message
-                    Dim responseType As Byte = CByte((canMessage.ID >> 24) And &HFF)
-                    If responseType = CmdModes.SINGLE_PARAM_READ Then
-                        Thread.Sleep(30)
-                        Dim result = BusCan.AnalitzarMissatgeLecturaParametreUnic(canMessage.Data, canMessage.ID)
-                        Console.WriteLine(result.Value)
-                    Else
-                        Dim result = BusCan.AnalitzarMissatgeRebut(canMessage.Data, canMessage.ID)
-                    End If
-                    ' Access and print the fields of the ParsedMessage struct
-                    'Console.WriteLine($"Feedback del Motor: Motor CAN ID: {result.MotorCanId}, Position: {result.Position} rad, Velocity: {result.Velocity} rad/s, Torque: {result.Torque} Nm")
+                    Console.WriteLine($"Mensaje Recibido: ID=0x{canMessage.ID:X} Data= {BitConverter.ToString(canMessage.Data)}")
+                    Console.WriteLine($"TimeStamp: {canTimestamp}")
+
+                    Dim result = BusCan.AnalitzarMissatgeRebut(canMessage.Data, canMessage.ID)
+
+                    ' Invocar el manejador del mensaje recibido
                     If canMessage IsNot Nothing AndAlso messageReceivedHandler IsNot Nothing Then
-                        messageReceivedHandler.Invoke(canMessage)
+                        SyncLock messageReceivedHandler
+                            messageReceivedHandler.Invoke(canMessage)
+                        End SyncLock
                     End If
                 End While
 
-                ' Reestablecer el evento
+                ' Reestablecer el evento solo después de haber procesado todos los mensajes
                 receiveEvent.Reset()
             End If
         End While

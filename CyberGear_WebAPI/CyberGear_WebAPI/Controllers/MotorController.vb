@@ -107,6 +107,13 @@ Public Class MotorController
     End Function
 
     <HttpPost>
+    <Route("api/Motor/EscribirParametroTabla/{index}/{value}")>
+    Public Function EscribirParametroTabla(index As UInteger, value As Single) As IHttpActionResult
+        _controlService.EscribirParametroTabla(index, value)
+        Return Ok()
+    End Function
+
+    <HttpPost>
     <Route("api/Motor/EscribirParametroByte/{index}/{value}")>
     Public Function EscribirParametro(index As UInteger, value As Byte) As IHttpActionResult
         _controlService.EscribirParametroUnico(index, value)

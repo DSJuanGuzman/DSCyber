@@ -4,6 +4,7 @@ Imports System.Threading
 Imports Dll100PortCyberGear
 Imports CyberGearVb.Struct
 Imports CyberGearVb.nsConstants
+Imports System.IO
 
 Friend Class BusCan
     Implements IBusCan
@@ -11,12 +12,28 @@ Friend Class BusCan
     Private MasterCANID As UInteger 'CANID
     Private channel As PcanChannel 'Canal de Comunicación CAN
     Public Event MessageReceived As Action(Of PcanMessage)
-
+    Public Event SingleParamReadReceived As Action(Of UInteger, Byte()) Implements IBusCan.SingleParamReadReceived
+    Private logFilePath As String = "can_messages_log.txt" ' Ruta del archivo de log
+    Private cmdModeNames As Dictionary(Of UInteger, String)
 
     Public Sub New(masterCANID As UInteger)
         ' Inicializa El Constructor
         Me.MasterCANID = masterCANID
         Me.channel = InicializarCanal()
+        cmdModeNames = New Dictionary(Of UInteger, String) From {
+            {CmdModes.GET_DEVICE_ID, "Get Device ID"},
+            {CmdModes.MOTOR_CONTROL, "Motor Control"},
+            {CmdModes.MOTOR_FEEDBACK, "Motor Feedback"},
+            {CmdModes.MOTOR_ENABLE, "Motor Enable"},
+            {CmdModes.MOTOR_STOP, "Motor Stop"},
+            {CmdModes.SET_MECHANICAL_ZERO, "Set Mechanical Zero"},
+            {CmdModes.SET_MOTOR_CAN_ID, "Set Motor CAN ID"},
+            {CmdModes.PARAM_TABLE_WRITE, "Parameter Table Write"},
+            {CmdModes.SINGLE_PARAM_READ, "Single Parameter Read"},
+            {CmdModes.SINGLE_PARAM_WRITE, "Single Parameter Write"},
+            {CmdModes.FAULT_FEEDBACK, "Fault Feedback"},
+            {CmdModes.BAUD_RATE_MODIFICATION, "Baud Rate Modification"}
+        }
     End Sub
 
     ''' <summary>  q2
@@ -43,6 +60,23 @@ Friend Class BusCan
         Return channel
     End Function
 
+    ''' <summary>
+    ''' Método para registrar mensajes CAN en un archivo de texto.
+    ''' </summary>
+    Private Sub LogCanMessage(arbitrationId As UInteger, cmdMode As UInteger, data As Byte())
+        Dim cmdModeName As String = If(cmdModeNames.ContainsKey(cmdMode), cmdModeNames(cmdMode), "Unknown CmdMode")
+        Dim messageData As String = BitConverter.ToString(data)
+        Dim logEntry As String = $"Time: {DateTime.Now}, Arbitration ID: {arbitrationId:X}, CmdMode: {cmdModeName}, Data: {messageData}"
+
+        ' Escribir en el archivo de log
+        Try
+            Using writer As StreamWriter = New StreamWriter(logFilePath, True)
+                writer.WriteLine(logEntry)
+            End Using
+        Catch ex As Exception
+            Debug.WriteLine($"Failed to write log entry: {ex.Message}")
+        End Try
+    End Sub
 
     Public Sub FinalitzarCanal() Implements IBusCan.FinalitzarCanal
         Dim result = Api.Uninitialize(channel)
@@ -186,6 +220,9 @@ Friend Class BusCan
             Debug.WriteLine("Failed to send the message.")
             Return New MotorData(0, 0, 0, 0, 0)
         End If
+        Debug.WriteLine($"Sent message with ID {arbitrationId:X}, data: {BitConverter.ToString(data1)}")
+        ' Registrar el mensaje en el archivo de log
+        LogCanMessage(arbitrationId, 0, data1)
         SyncLock receivedMessages
             While receivedMessages.Count > 0
                 Dim receivedMsg As PcanMessage = receivedMessages(0)
@@ -213,10 +250,14 @@ Friend Class BusCan
             .DLC = Convert.ToByte(data1.Length),
             .Data = data1
         }
-        ' Write the CAN message
+
+        ' Escribir el mensaje CAN
         Dim writeStatus As PcanStatus = Api.Write(Me.channel, canMessage)
         If writeStatus <> PcanStatus.OK Then
             Debug.WriteLine("Failed to send the message.")
+        Else
+            ' Registrar el mensaje en el archivo de log
+            LogCanMessage(arbitrationId, cmdMode, data1)
         End If
 
         ' Output details of the sent message
@@ -297,7 +338,15 @@ Friend Class BusCan
     ''' Administra el evento cuando se reciben mensajes nuevos en el buffer
     ''' </summary>
     Private Sub HandleMessage(canMessage As PcanMessage)
-        RaiseEvent MessageReceived(canMessage)
-    End Sub
+        ' Analizar el cmdMode del mensaje recibido
+        Dim cmdMode As UInteger = (canMessage.ID >> 24) And &HFF
 
+        If cmdMode = CmdModes.SINGLE_PARAM_READ Then
+            ' Lanza el evento específico para SINGLE_PARAM_READ
+            RaiseEvent SingleParamReadReceived(canMessage.ID, canMessage.Data)
+        Else
+            ' Lanza el evento general para otros mensajes
+            RaiseEvent MessageReceived(canMessage)
+        End If
+    End Sub
 End Class

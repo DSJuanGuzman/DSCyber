@@ -8,6 +8,7 @@ Public Class ControlService
     Private Property _Motor As IMotor
     Private Property _Motores As List(Of IMotor)
 
+
     Public Sub New(configurationService As IConfigurationService)
         _configurationService = configurationService
     End Sub
@@ -63,6 +64,10 @@ Public Class ControlService
     Public Function LeerParametroUnico(Index As UInteger) As String Implements IControlService.LeerParametroUnico
         Return _Motor.LlegirParametreUnic(Index)
     End Function
+    Public Sub EscribirParametroTabla(index As UInteger, value As Single) Implements IControlService.EscribirParametroTabla
+        _Motor.EscriureParametreTable(index, value)
+        Console.WriteLine($"Asignando a parametro: {index}")
+    End Sub
     Public Sub EscribirParametroUnico(index As UInteger, value As Single) Implements IControlService.EscribirParametroUnico
         _Motor.EscriureParametreUnic(index, value)
         Console.WriteLine($"Asignando a parametro: {index}")

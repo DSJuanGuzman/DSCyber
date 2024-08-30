@@ -17,6 +17,7 @@ Public Class Startup
         'Registro de los servicios
         container.RegisterType(Of IConfigurationService, ConfigurationService)(New ContainerControlledLifetimeManager())
         container.RegisterType(Of IControlService, ControlService)(New ContainerControlledLifetimeManager())
+        container.RegisterType(Of IJointControlService, JointControlService)(New ContainerControlledLifetimeManager())
         ' Establecer el solucionador de dependencias de Web API con Unity
         config.DependencyResolver = New UnityDependencyResolver(container)
         config.MapHttpAttributeRoutes()

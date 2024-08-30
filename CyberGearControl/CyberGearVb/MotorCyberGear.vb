@@ -20,6 +20,7 @@ Friend Class MotorCyberGear
     Public Sub New(busCan As IBusCan, motorCANID As UInteger)
         _busCan = busCan
         Me.MotorCANID = motorCANID
+        AddHandler _busCan.SingleParamReadReceived, Nothing
     End Sub
 
     Public Function SenId() As Integer Implements IMotor.SenID
@@ -71,28 +72,48 @@ Friend Class MotorCyberGear
     ''' </summary>
     ''' <param name="index"></param>
     Public Function LlegirParametreUnic(index As UInteger) As String Implements IMotor.LlegirParametreUnic
-        Dim receivedMessages As New List(Of PcanMessage)()
-        AddHandler Me.MessageReceived, Sub(msg)
-                                           SyncLock receivedMessages
-                                               receivedMessages.Add(msg)
-                                           End SyncLock
-                                       End Sub
+        Dim result As String = Nothing
+        Dim handler As Action(Of UInteger, Byte()) = Sub(arbitrationId, data)
+                                                         ' Analizar el mensaje recibido
+                                                         Dim parsedResult As ParsedSingleParameter = BusCan.AnalitzarMissatgeLecturaParametreUnic(data, arbitrationId)
+                                                         result = $"{parsedResult.Index}: {parsedResult.Value}"
+                                                     End Sub
+
+        ' Suscribirse al evento específico para SINGLE_PARAM_READ
+        AddHandler _busCan.SingleParamReadReceived, handler
+
+        ' Preparar y enviar el mensaje CAN
         Dim data_index As Byte() = BitConverter.GetBytes(index)
         Dim date_parameter As Byte() = {0, 0, 0, 0}
         Dim data1 As Byte() = data_index.Concat(date_parameter).ToArray()
         _busCan.EnviarMissatgeCan(MotorCANID, CType(CmdModes.SINGLE_PARAM_READ, UInteger), data1)
-        SyncLock receivedMessages
-            While receivedMessages.Count > 0
-                Dim receivedMsg As PcanMessage = receivedMessages(0)
-                receivedMessages.RemoveAt(0)
-                Dim result As ParsedSingleParameter = BusCan.AnalitzarMissatgeLecturaParametreUnic(receivedMsg.Data, receivedMsg.ID)
-                Return $"{result.Index}: {result.Value}"
-            End While
-        End SyncLock
-        RemoveHandler Me.MessageReceived, Nothing
-        Return Nothing
+
+        ' Esperar hasta que se reciba la respuesta o hasta un cierto tiempo
+        Dim timeout As DateTime = DateTime.Now.AddMilliseconds(500) ' Timeout de 500 ms, ajustable según sea necesario
+        While result Is Nothing AndAlso DateTime.Now < timeout
+            Threading.Thread.Sleep(10) ' Pausa breve para evitar consumo excesivo de CPU
+        End While
+
+        ' Desuscribirse del evento
+        RemoveHandler _busCan.SingleParamReadReceived, handler
+
+        Return result
     End Function
 
+    ''' <summary>
+    ''' lee un unico parametro del index indicado
+    ''' </summary>
+    ''' <param name="index"></param>
+    Public Sub EscriureParametreTable(index As UInteger, value As Single) Implements IMotor.EscriureParametreTable
+        'Asigna un nuevo valor al parametro dado
+        Dim data_index As Byte() = BitConverter.GetBytes(index)
+        Dim date_parameter As Byte() = BitConverter.GetBytes(value)
+        'Combina ambas matrices
+        Dim data1 As Byte() = data_index.Concat(date_parameter).ToArray()
+
+        'Envia el mensaje CAN
+        _busCan.EnviarMissatgeCan(MotorCANID, CType(CmdModes.PARAM_TABLE_WRITE, UInteger), data1)
+    End Sub
     ''' <summary>
     ''' Asigna el modo pocision al motor
     ''' </summary>
