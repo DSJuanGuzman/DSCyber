@@ -11,6 +11,8 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Dll100PortCyberGear", "..\C
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "CyberGearVb", "..\CyberGearControl\CyberGearVb\CyberGearVb.vbproj", "{C9620500-A9F3-4D93-B091-5330902D0B65}"
 EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Interfaz_Control_Brazo", "Interfaz_Control_Brazo\Interfaz_Control_Brazo.vbproj", "{7A99927C-FE69-416E-897C-5FF0EE7BFA3B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{C9620500-A9F3-4D93-B091-5330902D0B65}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C9620500-A9F3-4D93-B091-5330902D0B65}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C9620500-A9F3-4D93-B091-5330902D0B65}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A99927C-FE69-416E-897C-5FF0EE7BFA3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A99927C-FE69-416E-897C-5FF0EE7BFA3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A99927C-FE69-416E-897C-5FF0EE7BFA3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A99927C-FE69-416E-897C-5FF0EE7BFA3B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

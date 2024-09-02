@@ -1,5 +1,6 @@
 ﻿Imports System.Web.Http
 Imports System.Threading.Tasks ' Para soportar métodos asincrónicos
+Imports System.Collections.Concurrent
 
 Public Class JointController
     Inherits ApiController
@@ -70,4 +71,42 @@ Public Class JointController
         Await Task.Run(Sub() _JointService.EstablecerPosicion(Id, Speed, angle))
         Return Ok("Se ha establecido la Posicion para los motores")
     End Function
+
+    <HttpPost>
+    <Route("api/Joint/Forward/{Id}/{Speed}")>
+    Public Async Function forward(Id As Integer, Speed As Single) As Task(Of IHttpActionResult)
+        Await Task.Run(Sub() _JointService.Forward(Id, Speed))
+        Return Ok("Se ha establecido la Posicion para los motores")
+    End Function
+
+    <HttpPost>
+    <Route("api/Joint/Backward/{Id}/{Speed}")>
+    Public Async Function Backward(Id As Integer, Speed As Single) As Task(Of IHttpActionResult)
+        Await Task.Run(Sub() _JointService.Backward(Id, Speed))
+        Return Ok("Se ha establecido la Posicion para los motores")
+    End Function
+
+    <HttpGet>
+    <Route("api/Joint/GetJoints")>
+    Public Async Function GetJoints() As Task(Of IHttpActionResult)
+        Try
+            Dim articulaciones As ConcurrentDictionary(Of Integer, Joint) = Await Task.Run(Function() _JointService.GetJoints)
+
+            If articulaciones Is Nothing OrElse articulaciones.Count = 0 Then
+                Return NotFound()
+            End If
+
+            ' Convertir los datos a una lista de DTOs
+            Dim jointsDto As List(Of JointDto) = articulaciones.Select(Function(pair) New JointDto With {
+                .Id = pair.Key,
+                .NumberOfMotors = pair.Value._Motores.Count,
+                .Configuration = pair.Value._Configuration.ToString() ' Asegúrate de que Configuration sea convertible a String
+            }).ToList()
+
+            Return Ok(jointsDto)
+        Catch ex As Exception
+            Return InternalServerError(ex)
+        End Try
+    End Function
+
 End Class

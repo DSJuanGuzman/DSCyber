@@ -133,6 +133,23 @@ Class MainWindow
         End If
     End Sub
 
+    Public Async Function ObtenerEstado() As Task(Of MotorData)
+        Dim Response As HttpResponseMessage = Await client.GetAsync($"{BaseUri}/Motor/Estado")
+        If Response.IsSuccessStatusCode Then
+            Dim jsonResponse As String = Await Response.Content.ReadAsStringAsync()
+            Dim motorData As MotorData = JsonConvert.DeserializeObject(Of MotorData)(jsonResponse)
+
+            Message_Log.AppendText(jsonResponse)
+            Message_Log.AppendText(Environment.NewLine)
+
+            Return motorData
+        Else
+            Message_Log.AppendText("Error en la solicitud: " & Response.StatusCode & " " & Response.ReasonPhrase)
+            Message_Log.AppendText(Environment.NewLine)
+            Return Nothing
+        End If
+    End Function
+
     Private Async Sub EstablecerModo(sender As Object, e As RoutedEventArgs)
         Dim selectedOption As String = TryCast(CType(OptionsComboBox.SelectedItem, ComboBoxItem)?.Content, String)
 

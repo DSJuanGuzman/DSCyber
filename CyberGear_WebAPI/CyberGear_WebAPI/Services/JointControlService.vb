@@ -85,5 +85,34 @@ Public Class JointControlService
         End If
     End Sub
 
+    Public Sub Forward(Id As Integer, Speed As Single)
+
+        If _Joints.ContainsKey(Id) Then
+            Dim selectedJoint = _Joints(Id)
+            Dim motors = selectedJoint._Motores
+            Parallel.For(0, motors.Count, Sub(i)
+                                              Dim motorData = motors(i).RebreStatMotor()
+                                              motors(i).EstablirLimitVelocitat(Speed)
+                                              motors(i).EstablirPosicio(motorData.Posicion + 0.2)
+                                          End Sub)
+        End If
+    End Sub
+
+    Public Sub Backward(Id As Integer, Speed As Single)
+
+        If _Joints.ContainsKey(Id) Then
+            Dim selectedJoint = _Joints(Id)
+            Dim motors = selectedJoint._Motores
+            Parallel.For(0, motors.Count, Sub(i)
+                                              Dim motorData = motors(i).RebreStatMotor()
+                                              motors(i).EstablirLimitVelocitat(Speed)
+                                              motors(i).EstablirPosicio(motorData.Posicion - 0.2)
+                                          End Sub)
+        End If
+    End Sub
+    Public Function GetJoints() As ConcurrentDictionary(Of Integer, Joint) Implements IJointControlService.GetJoints
+        Return _Joints
+    End Function
+
 
 End Class

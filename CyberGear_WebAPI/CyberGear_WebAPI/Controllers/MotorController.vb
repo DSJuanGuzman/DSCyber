@@ -147,4 +147,10 @@ Public Class MotorController
         _controlService.EstablecerComandoCorriente(value)
         Return Ok()
     End Function
+
+    <HttpGet>
+    <Route("api/Motor/Estado")>
+    Public Function ObtenerEstado() As IHttpActionResult
+        Return Ok(_controlService.ObtenerEstado())
+    End Function
 End Class

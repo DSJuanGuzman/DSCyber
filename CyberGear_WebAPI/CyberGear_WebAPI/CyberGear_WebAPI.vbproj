@@ -143,6 +143,7 @@
     <Compile Include="Middleware\LoggingMiddleware.vb" />
     <Compile Include="Modelos\ComandoControlModel.vb" />
     <Compile Include="Modelos\Joint.vb" />
+    <Compile Include="Modelos\JointDto.vb" />
     <Compile Include="Module1.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
