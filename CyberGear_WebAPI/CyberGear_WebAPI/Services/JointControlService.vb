@@ -19,7 +19,7 @@ Public Class JointControlService
         _Joints(joint._JointId) = joint
     End Sub
 
-    Public Function ActivarJoint(Ids As List(Of Integer), configuration As ConfigurationEnum) As Joint Implements IJointControlService.ActivarJoint
+    Public Function CrearJoint(Ids As List(Of Integer), configuration As ConfigurationEnum) As Joint Implements IJointControlService.CrearJoint
         _controlService.BuscarMotores()
 
         Dim motors As New ConcurrentBag(Of IMotor)
@@ -31,12 +31,20 @@ Public Class JointControlService
                                       _motorCache(Id) = motor
                                   End If
                                   motors.Add(motor)
-                                  _controlService.ActivarMotor(Id)
                               End Sub)
 
         Return New Joint(_Joints.Count + 1, configuration, motors.ToList())
     End Function
 
+    Public Sub ActivarJoint(Id As Integer) Implements IJointControlService.ActivarJoint
+        ' Optimización: Acceso rápido a Joint mediante diccionario
+        If _Joints.ContainsKey(Id) Then
+            Dim selectedJoint = _Joints(Id)
+            For Each motor In selectedJoint._Motores
+                motor.ActivarMotor()
+            Next
+        End If
+    End Sub
     Public Sub DesactivarJoint(Id As Integer) Implements IJointControlService.DesactivarJoint
         ' Optimización: Acceso rápido a Joint mediante diccionario
         If _Joints.ContainsKey(Id) Then
@@ -85,7 +93,7 @@ Public Class JointControlService
         End If
     End Sub
 
-    Public Sub Forward(Id As Integer, Speed As Single)
+    Public Sub Forward(Id As Integer, Speed As Single) Implements IJointControlService.Forward
 
         If _Joints.ContainsKey(Id) Then
             Dim selectedJoint = _Joints(Id)
@@ -98,7 +106,7 @@ Public Class JointControlService
         End If
     End Sub
 
-    Public Sub Backward(Id As Integer, Speed As Single)
+    Public Sub Backward(Id As Integer, Speed As Single) Implements IJointControlService.Backward
 
         If _Joints.ContainsKey(Id) Then
             Dim selectedJoint = _Joints(Id)
@@ -113,6 +121,4 @@ Public Class JointControlService
     Public Function GetJoints() As ConcurrentDictionary(Of Integer, Joint) Implements IJointControlService.GetJoints
         Return _Joints
     End Function
-
-
 End Class

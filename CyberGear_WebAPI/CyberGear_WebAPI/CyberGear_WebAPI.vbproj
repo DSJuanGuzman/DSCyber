@@ -134,16 +134,19 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controllers\ArmController.vb" />
     <Compile Include="Controllers\JointController.vb" />
     <Compile Include="Enums\Configurations.vb" />
     <Compile Include="Controllers\MotorController.vb" />
+    <Compile Include="Interfaces\IArmControlService.vb" />
     <Compile Include="Interfaces\IConfigurationService.vb" />
     <Compile Include="Interfaces\IControlService.vb" />
     <Compile Include="Interfaces\IJointControlService.vb" />
     <Compile Include="Middleware\LoggingMiddleware.vb" />
-    <Compile Include="Modelos\ComandoControlModel.vb" />
+    <Compile Include="Modelos\Brazo.vb" />
+    <Compile Include="Modelos\Datos\ComandoControlModel.vb" />
     <Compile Include="Modelos\Joint.vb" />
-    <Compile Include="Modelos\JointDto.vb" />
+    <Compile Include="Modelos\Datos\JointDto.vb" />
     <Compile Include="Module1.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
@@ -160,9 +163,11 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="Services\ArmControlService.vb" />
     <Compile Include="Services\ConfigurationService.vb" />
     <Compile Include="Services\ControlService.vb" />
     <Compile Include="Services\JointControlService.vb" />
+    <Compile Include="Services\PruebasDiagnosticasService.vb" />
     <Compile Include="Startup.vb" />
   </ItemGroup>
   <ItemGroup>

@@ -48,7 +48,7 @@ Public Class JointController
         End Select
 
         ' Optimización: Llamada asincrónica a ActivarJoint
-        Dim joint As Joint = Await Task.Run(Function() _JointService.ActivarJoint(idsList, jointConfiguration))
+        Dim joint As Joint = Await Task.Run(Function() _JointService.CrearJoint(idsList, jointConfiguration))
         _JointService.SetJoint(joint)
 
         Return Ok($"{Ids}, {jointConfiguration}")
